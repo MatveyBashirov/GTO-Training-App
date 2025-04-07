@@ -76,7 +76,7 @@ class _ExercisesPageState extends State<ExercisesPage>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Gif(
-                                image: AssetImage('assets/exercises/abs/front-plank.gif'),
+                                image: AssetImage(exercise.imageUrl),
                                 controller: _controller,
                                 autostart: Autostart.no,
                                 placeholder: (context) => Center(

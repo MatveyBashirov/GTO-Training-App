@@ -30,7 +30,7 @@ class ExerciseDatabase {
         name TEXT NOT NULL,
         description TEXT,
         image_url TEXT,
-        category INTEGER
+        category INTEGER,
         FOREIGN KEY (category) REFERENCES categories (id) ON DELETE SET NULL
       )
     ''');

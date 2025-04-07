@@ -34,7 +34,12 @@ flutter:
     - .env
     - assets/img/
     - assets/ui/
-    - assets/exercises/
+    - assets/exercises/abs/
+    - assets/exercises/arms/
+    - assets/exercises/back/
+    - assets/exercises/chest/
+    - assets/exercises/legs/
+    - assets/exercises/shoulders/
 
 flutter_launcher_icons:
   android: "launcher_icon"
