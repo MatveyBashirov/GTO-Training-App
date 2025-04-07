@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
+import 'package:trainings_app/features/my-trainings-page/exercise_info.dart';
 import 'package:trainings_app/training_database.dart';
 import 'package:gif/gif.dart';
 
@@ -12,7 +13,8 @@ class WorkoutExercisesPage extends StatefulWidget {
   State<WorkoutExercisesPage> createState() => _WorkoutExercisesPageState();
 }
 
-class _WorkoutExercisesPageState extends State<WorkoutExercisesPage> with SingleTickerProviderStateMixin {
+class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
+    with SingleTickerProviderStateMixin {
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
   List<Map<String, dynamic>> workoutExercises = [];
   String workoutTitle = '';
@@ -55,50 +57,64 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage> with Single
                   itemCount: workoutExercises.length,
                   itemBuilder: (context, index) {
                     final exercise = workoutExercises[index];
-                    return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Row(
-                          children: [
-                            // Изображение (первый кадр GIF)
-                            Container(
-                              width: 60,
-                              height: 60,
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Gif(
-                                image: AssetImage(exercise['image_url']),
-                                controller: _controller,
-                                autostart: Autostart.no,
-                                placeholder: (context) => Center(
-                                  child: Icon(Icons.fitness_center, size: 30),
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ExerciseInfo(
+                            exerciseName: exercise['name'],
+                            description: exercise['description'],
+                            imageUrl: exercise['image_url'],
+                          ),
+                        ),
+                      );
+                      },
+                      child: Card(
+                        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Row(
+                            children: [
+                              // Изображение (первый кадр GIF)
+                              Container(
+                                width: 60,
+                                height: 60,
+                                clipBehavior: Clip.antiAlias,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                fit: BoxFit.cover,
+                                child: Gif(
+                                  image: AssetImage(exercise['image_url']),
+                                  controller: _controller,
+                                  autostart: Autostart.no,
+                                  placeholder: (context) => Center(
+                                    child: Icon(Icons.fitness_center, size: 30),
+                                  ),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    exercise['name'],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      exercise['name'],
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'Повторения: ${exercise['reps']}',
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ],
+                                    Text(
+                                      'Повторения: ${exercise['reps']}',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );

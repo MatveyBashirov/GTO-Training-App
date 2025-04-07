@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trainings_app/features/my-trainings-page/exercise_info.dart';
 import 'package:trainings_app/models/exercise.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/training_database.dart';
@@ -61,55 +62,69 @@ class _ExercisesPageState extends State<ExercisesPage>
                   itemBuilder: (context, index) {
                     final exercise = exercises[index];
                     final isSelected = selectedExercises.contains(exercise.id);
-                    return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Row(
-                          children: [
-                            // Изображение (первый кадр GIF)
-                            Container(
-                              width: 60, // Фиксированная ширина
-                              height: 60, // Фиксированная высота
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Gif(
-                                image: AssetImage(exercise.imageUrl),
-                                controller: _controller,
-                                autostart: Autostart.no,
-                                placeholder: (context) => Center(
-                                  child: Icon(Icons.fitness_center, size: 30),
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ExerciseInfo(
+                            exerciseName: exercise.name,
+                            description: exercise.description,
+                            imageUrl: exercise.imageUrl,
+                          ),
+                        ),
+                      );
+                      },
+                      child: Card(
+                        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Row(
+                            children: [
+                              // Изображение (первый кадр GIF)
+                              Container(
+                                width: 60, // Фиксированная ширина
+                                height: 60, // Фиксированная высота
+                                clipBehavior: Clip.antiAlias,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                fit: BoxFit.cover, // Заполнение контейнера
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    exercise.name,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                child: Gif(
+                                  image: AssetImage(exercise.imageUrl),
+                                  controller: _controller,
+                                  autostart: Autostart.no,
+                                  placeholder: (context) => Center(
+                                    child: Icon(Icons.fitness_center, size: 30),
                                   ),
-                                ],
+                                  fit: BoxFit.cover, // Заполнение контейнера
+                                ),
                               ),
-                            ),
-                            // Кнопка "+" / галочка
-                            IconButton(
-                              icon: isSelected
-                                  ? Icon(Icons.check, color: Colors.green)
-                                  : Icon(Icons.add,
-                                      color: theme.colorScheme.primary),
-                              onPressed: () =>
-                                  _toggleExerciseSelection(exercise.id),
-                            ),
-                          ],
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      exercise.name,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Кнопка "+" / галочка
+                              IconButton(
+                                icon: isSelected
+                                    ? Icon(Icons.check, color: Colors.green)
+                                    : Icon(Icons.add,
+                                        color: theme.colorScheme.primary),
+                                onPressed: () =>
+                                    _toggleExerciseSelection(exercise.id),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
