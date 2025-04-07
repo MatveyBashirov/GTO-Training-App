@@ -1,0 +1,2 @@
+C:/Users/Matvey/Desktop/trainings_app/trainings_app/android/app/.cxx/Debug/1o5e2r4v/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Matvey/Desktop/trainings_app/trainings_app/android/app/.cxx/Debug/1o5e2r4v/armeabi-v7a/CMakeFiles/rebuild_cache.dir

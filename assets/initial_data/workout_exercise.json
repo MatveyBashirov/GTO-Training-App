@@ -1,0 +1,50 @@
+[
+    {
+        "workout_id": 1,
+        "exercise_id": 1,
+        "reps": 15,
+        "order_index": 0
+    },
+    {
+        "workout_id": 1,
+        "exercise_id": 2,
+        "reps": 30,
+        "order_index": 1
+    },
+    {
+        "workout_id": 1,
+        "exercise_id": 9,
+        "reps": 12,
+        "order_index": 2
+    },
+    {
+        "workout_id": 1,
+        "exercise_id": 10,
+        "reps": 10,
+        "order_index": 3
+    },
+    {
+        "workout_id": 2,
+        "exercise_id": 15,
+        "reps": 8,
+        "order_index": 0
+    },
+    {
+        "workout_id": 2,
+        "exercise_id": 20,
+        "reps": 10,
+        "order_index": 1
+    },
+    {
+        "workout_id": 2,
+        "exercise_id": 22,
+        "reps": 12,
+        "order_index": 2
+    },
+    {
+        "workout_id": 2,
+        "exercise_id": 27,
+        "reps": 15,
+        "order_index": 3
+    }
+]
