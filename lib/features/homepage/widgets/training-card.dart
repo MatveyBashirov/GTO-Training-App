@@ -26,7 +26,7 @@ class TrainingCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           onTap: () {
-            Navigator.of(context).pushNamed('/create_training');
+            Navigator.of(context).pushNamed('/workout_exercises', arguments: workoutId);
           },
           child: Stack(
             alignment: AlignmentDirectional.center,

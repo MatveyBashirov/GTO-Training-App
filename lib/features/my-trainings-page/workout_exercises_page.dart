@@ -70,7 +70,7 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage> with Single
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Gif(
-                                image: NetworkImage(exercise['image_url']),
+                                image: AssetImage(exercise['image_url']),
                                 controller: _controller,
                                 autostart: Autostart.no,
                                 placeholder: (context) => Center(
