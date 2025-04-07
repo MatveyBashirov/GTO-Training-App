@@ -17,14 +17,16 @@
       return AppBar(
         iconTheme: theme.iconTheme,
         backgroundColor: theme.colorScheme.primary,
-        flexibleSpace: Center(
-          child: Text(
-            title,
-            style: theme.textTheme.titleLarge!.copyWith(
-              color: Colors.white,
-            ),
-          ),
+        title: Text(
+        title,
+        style: theme.textTheme.titleLarge!.copyWith(
+          color: Colors.white,
         ),
+        // Добавляем автоматическое уменьшение текста
+        overflow: TextOverflow.ellipsis,
+        softWrap: false,
+      ),
+      centerTitle: true,
       );
     }
   }
