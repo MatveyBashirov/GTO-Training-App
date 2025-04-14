@@ -25,7 +25,7 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.secondary,
-      appBar: TrainingAppBar(title: 'Упражнения для вас'),
+      appBar: TrainingAppBar(title: 'Мои тренировки'),
     );
   }
 }

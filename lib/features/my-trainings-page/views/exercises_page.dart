@@ -1,71 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:trainings_app/features/my-trainings-page/views/exercise_info.dart';
+import 'package:trainings_app/models/exercise.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
-import 'package:trainings_app/features/my-trainings-page/exercise_info.dart';
 import 'package:trainings_app/training_database.dart';
 import 'package:gif/gif.dart';
 
-class WorkoutExercisesPage extends StatefulWidget {
-  final int workoutId;
-
-  const WorkoutExercisesPage({super.key, required this.workoutId});
-
+class ExercisesPage extends StatefulWidget {
+  const ExercisesPage({super.key});
   @override
-  State<WorkoutExercisesPage> createState() => _WorkoutExercisesPageState();
+  _ExercisesPageState createState() => _ExercisesPageState();
 }
 
-class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
+class _ExercisesPageState extends State<ExercisesPage>
     with SingleTickerProviderStateMixin {
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
-  List<Map<String, dynamic>> workoutExercises = [];
-  String workoutTitle = '';
+  List<Exercise> exercises = [];
   bool isLoading = false;
-  late GifController _controller;
+  Set<int> selectedExercises = {};
+  late final GifController _controller;
 
   @override
   void initState() {
-    super.initState();
-    _loadWorkoutData();
+    _loadExercises();
     _controller = GifController(vsync: this);
     _controller.value = 0;
+    super.initState();
   }
 
-  Future<void> _loadWorkoutData() async {
+  Future<void> _loadExercises() async {
     setState(() => isLoading = true);
-
-    // Загружаем название тренировки
-    final workout = await dbHelper.getWorkout(widget.workoutId);
-    if (workout != null) {
-      workoutTitle = workout['title'];
+    try {
+      exercises = await dbHelper.getExercises();
+    } catch (e) {
+      print('Error loading exercises: $e');
+      exercises = [];
     }
-
-    // Загружаем упражнения для тренировки
-    workoutExercises = await dbHelper.getWorkoutExercises(widget.workoutId);
-
     setState(() => isLoading = false);
+  }
+
+  void _toggleExerciseSelection(int exerciseId) {
+    setState(() {
+      if (selectedExercises.contains(exerciseId)) {
+        selectedExercises.remove(exerciseId);
+      } else {
+        selectedExercises.add(exerciseId);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: TrainingAppBar(title: workoutTitle),
+      appBar: TrainingAppBar(title: 'Доступные упражнения'),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : workoutExercises.isEmpty
-              ? Center(child: Text('Нет упражнений для этой тренировки'))
+          : exercises.isEmpty
+              ? Center(child: Text('Нет упражнений'))
               : ListView.builder(
-                  itemCount: workoutExercises.length,
+                  itemCount: exercises.length,
                   itemBuilder: (context, index) {
-                    final exercise = workoutExercises[index];
+                    final exercise = exercises[index];
+                    final isSelected = selectedExercises.contains(exercise.id);
                     return InkWell(
                       onTap: () {
                         Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ExerciseInfo(
-                            exerciseName: exercise['name'],
-                            description: exercise['description'],
-                            imageUrl: exercise['image_url'],
+                            exerciseName: exercise.name,
+                            description: exercise.description,
+                            imageUrl: exercise.imageUrl,
                           ),
                         ),
                       );
@@ -78,20 +83,20 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
                             children: [
                               // Изображение (первый кадр GIF)
                               Container(
-                                width: 60,
-                                height: 60,
+                                width: 60, // Фиксированная ширина
+                                height: 60, // Фиксированная высота
                                 clipBehavior: Clip.antiAlias,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Gif(
-                                  image: AssetImage(exercise['image_url']),
+                                  image: AssetImage(exercise.imageUrl),
                                   controller: _controller,
                                   autostart: Autostart.no,
                                   placeholder: (context) => Center(
                                     child: Icon(Icons.fitness_center, size: 30),
                                   ),
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.cover, // Заполнение контейнера
                                 ),
                               ),
                               SizedBox(width: 12),
@@ -100,18 +105,23 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      exercise['name'],
+                                      exercise.name,
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    Text(
-                                      'Повторения: ${exercise['reps']}',
-                                      style: TextStyle(fontSize: 14),
-                                    ),
                                   ],
                                 ),
+                              ),
+                              // Кнопка "+" / галочка
+                              IconButton(
+                                icon: isSelected
+                                    ? Icon(Icons.check, color: Colors.green)
+                                    : Icon(Icons.add,
+                                        color: theme.colorScheme.primary),
+                                onPressed: () =>
+                                    _toggleExerciseSelection(exercise.id),
                               ),
                             ],
                           ),
@@ -122,7 +132,6 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
                 ),
     );
   }
-
   @override
   void dispose() {
     _controller.dispose();

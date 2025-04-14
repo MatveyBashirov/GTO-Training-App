@@ -1,0 +1,93 @@
+import 'package:flutter/material.dart';
+import 'package:trainings_app/features/appbar/training-appbar.dart';
+import 'package:trainings_app/features/my-trainings-page/views/completion_screen.dart';
+
+class TrainingScreen extends StatefulWidget {
+  final List<Map<String, dynamic>> exercises;
+  final String workoutTitle;
+
+  const TrainingScreen({super.key, required this.exercises, required this.workoutTitle});
+  @override
+  State<StatefulWidget> createState() => TrainingScreenState();
+}
+
+class TrainingScreenState extends State<TrainingScreen> {
+  int _currentExerciseIndex = 0;
+  bool get _isLastExercise =>
+      _currentExerciseIndex == widget.exercises.length - 1;
+
+  void _nextExercise() {
+    if (_isLastExercise) {
+      _completeTraining();
+    } else {
+      setState(() => _currentExerciseIndex++);
+    }
+  }
+
+  void _completeTraining() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CompletionScreen(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final exercise = widget.exercises[_currentExerciseIndex];
+    final isLastExercise = _currentExerciseIndex == widget.exercises.length - 1;
+
+    return Scaffold(
+      appBar: TrainingAppBar(title: widget.workoutTitle),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Container(
+                    height: 250,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      image: DecorationImage(
+                        image: AssetImage(exercise['image_url']),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    exercise['name'],
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.left,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    exercise['description'],
+                    textAlign: TextAlign.left,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Повторений: ${exercise['reps']}',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).primaryColor
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: _nextExercise,
+              child: Text(isLastExercise ? 'Завершить тренировку' : 'Следующее упражнение'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
