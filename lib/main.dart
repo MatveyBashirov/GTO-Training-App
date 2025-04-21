@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trainings_app/features/homepage/views/login_screen.dart';
 import 'package:trainings_app/features/homepage/views/signup_screen.dart';
 import 'package:trainings_app/features/homepage/views/training_home_page.dart';
+import 'package:trainings_app/features/my-trainings-page/views/my_trainings_page.dart';
 import 'package:trainings_app/features/my-trainings-page/views/workout_exercises_page.dart';
 import 'package:trainings_app/services/auth_wrapper.dart';
 import 'package:trainings_app/theme/theme.dart';
@@ -32,6 +33,7 @@ class TrainingApp extends StatelessWidget {
         '/homepage': (context) => const TrainingHomePage(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
+        '/myworkouts': (context) => const SelectWorkoutScreen(),
         '/workout_exercises': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as int?;
           if (args == null) {

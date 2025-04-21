@@ -14,9 +14,12 @@ class ExercisesPage extends StatefulWidget {
 class _ExercisesPageState extends State<ExercisesPage>
     with SingleTickerProviderStateMixin {
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
-  List<Exercise> exercises = [];
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  List<Exercise> allExercises = [];
+  List<Exercise> selectedExercises = [];
+  Map<int, int> exerciseReps = {};
   bool isLoading = false;
-  Set<int> selectedExercises = {};
   late final GifController _controller;
 
   @override
@@ -30,39 +33,135 @@ class _ExercisesPageState extends State<ExercisesPage>
   Future<void> _loadExercises() async {
     setState(() => isLoading = true);
     try {
-      exercises = await dbHelper.getExercises();
+      allExercises = await dbHelper.getExercises();
     } catch (e) {
       print('Error loading exercises: $e');
-      exercises = [];
+      allExercises = [];
     }
     setState(() => isLoading = false);
   }
 
-  void _toggleExerciseSelection(int exerciseId) {
+  void _addExercise(Exercise exercise) {
     setState(() {
-      if (selectedExercises.contains(exerciseId)) {
-        selectedExercises.remove(exerciseId);
-      } else {
-        selectedExercises.add(exerciseId);
-      }
+      selectedExercises.add(exercise);
     });
+  }
+
+  void _removeExercise(Exercise exercise) {
+    setState(() {
+      selectedExercises.remove(exercise);
+      exerciseReps.remove(exercise.id);
+    });
+  }
+
+  void _updateReps(int exerciseId, int reps) {
+    setState(() {
+      exerciseReps[exerciseId] = reps;
+    });
+  }
+
+  Future<void> _saveWorkout() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (selectedExercises.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Добавьте хотя бы одно упражнение')),
+      );
+      return;
+    }
+
+    final workoutId = await dbHelper.createWorkout(title: _titleController.text);
+
+    for (int i = 0; i < selectedExercises.length; i++) {
+      final exercise = selectedExercises[i];
+      await dbHelper.insertWorkoutExercise(
+        workoutId: workoutId,
+        exerciseId: exercise.id,
+        reps: exerciseReps[exercise.id] ?? 10,
+        orderIndex: i,
+      );
+    }
+
+    Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: TrainingAppBar(title: 'Доступные упражнения'),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : exercises.isEmpty
-              ? Center(child: Text('Нет упражнений'))
-              : ListView.builder(
-                  itemCount: exercises.length,
-                  itemBuilder: (context, index) {
-                    final exercise = exercises[index];
-                    final isSelected = selectedExercises.contains(exercise.id);
-                    return InkWell(
+      appBar: AppBar(
+        title: const Text('Создать тренировку'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _saveWorkout,
+          )
+        ],
+
+      ),
+      body: Padding( 
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Название тренировки',
+                  border: OutlineInputBorder()
+                ),
+                validator: (value){
+                  if(value == null || value.isEmpty){
+                    return 'Введите название тренировки';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Выбранные упражнения: ',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.primaryColor
+                ),
+              ),
+              _buildSelectedExercisesList(),
+              const Divider(),
+              Text(
+                'Список всех упражнений: ',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.primaryColor
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _buildAllExercisesList(),
+              ),
+            ],
+          )
+        ),
+      )
+    );
+  }
+
+  
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _buildAllExercisesList() {
+  final theme = Theme.of(context);
+  if (allExercises.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return ListView.builder(
+      itemCount: allExercises.length,
+      itemBuilder: (context, index) {
+        final exercise = allExercises[index];
+        return InkWell(
                       onTap: () {
                         Navigator.push(
                         context,
@@ -116,25 +215,66 @@ class _ExercisesPageState extends State<ExercisesPage>
                               ),
                               // Кнопка "+" / галочка
                               IconButton(
-                                icon: isSelected
-                                    ? Icon(Icons.check, color: Colors.green)
-                                    : Icon(Icons.add,
+                                icon: Icon(Icons.add,
                                         color: theme.colorScheme.primary),
                                 onPressed: () =>
-                                    _toggleExerciseSelection(exercise.id),
+                                    _addExercise(exercise),
                               ),
                             ],
                           ),
                         ),
                       ),
                     );
-                  },
-                ),
+      },
     );
-  }
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+}
+
+Widget _buildSelectedExercisesList() {
+  if (selectedExercises.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Text('Нет выбранных упражнений'),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: selectedExercises.length,
+      itemBuilder: (context, index) {
+        final exercise = selectedExercises[index];
+        return ListTile(
+          title: Text(exercise.name),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.remove),
+                onPressed: () {
+                  _updateReps(
+                    exercise.id,
+                    (exerciseReps[exercise.id] ?? 10) - 1,
+                  );
+                },
+              ),
+              Text('${exerciseReps[exercise.id] ?? 10}'),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  _updateReps(
+                    exercise.id,
+                    (exerciseReps[exercise.id] ?? 10) + 1,
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _removeExercise(exercise),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+}
 }

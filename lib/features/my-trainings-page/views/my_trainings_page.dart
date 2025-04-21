@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
+import 'package:trainings_app/features/homepage/widgets/training-card.dart';
+import 'package:trainings_app/features/my-trainings-page/views/exercises_page.dart';
 import 'package:trainings_app/models/workout.dart';
+import 'package:trainings_app/training_database.dart';
 
 class SelectWorkoutScreen extends StatefulWidget {
+  const SelectWorkoutScreen({super.key});
+
   @override
   _SelectWorkoutScreenState createState() => _SelectWorkoutScreenState();
 }
 
 class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
-  List<Workout> workouts = []; // Здесь будут храниться тренировки пользователя
+  final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
+  List<Map<String, dynamic>> workouts = [];
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -17,15 +24,46 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
   }
 
   Future<void> _loadWorkouts() async {
-    
+    setState(() => isLoading = true);
+    workouts = await dbHelper.getAllWorkouts();
+    setState(() => isLoading = false);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.colorScheme.secondary,
       appBar: TrainingAppBar(title: 'Мои тренировки'),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ExercisesPage()),
+          );
+          if (result == true) {
+            _loadWorkouts(); // Обновляем список тренировок после создания новой
+          }
+        },
+        backgroundColor: Colors.white,
+        tooltip: 'Создать тренировку',
+        child: Icon(Icons.add, color: theme.primaryColor),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : workouts.isEmpty
+              ? Center(child: Text('Нет тренировок'))
+              : ListView.builder(
+                  itemCount: workouts.length,
+                  itemBuilder: (context, index) {
+                    final workout = workouts[index];
+                    return TrainingCard(
+                      title: workout['title'],
+                      workoutId: workout['id'],
+                    );
+                  },
+                ),
     );
   }
 }

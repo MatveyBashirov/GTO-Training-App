@@ -14,7 +14,6 @@ class TrainingHomePage extends StatefulWidget {
 class _TrainingHomePageState extends State<TrainingHomePage> {
   ///Список бокового меню
   final List<String> drawerItems = [
-    "Программы",
     "Мои тренировки",
     "Статистика",
     "Нормативы ГТО",
@@ -22,8 +21,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
 
   ///Список бокового меню
   final List<String> drawerRoutes = [
-    "/",
-    "/create_training",
+    "/myworkouts",
     "/",
     "/",
   ];

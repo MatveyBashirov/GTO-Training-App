@@ -20,7 +20,12 @@ class ExerciseDatabase {
 
   Future<Database> _initDB(String filePath) async {
     final dbPath = join(await getDatabasesPath(), filePath);
-    return await openDatabase(dbPath, version: 2, onCreate: _createDB, onUpgrade: _onUpgrade,);
+    return await openDatabase(
+      dbPath,
+      version: 3,
+      onCreate: _createDB,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future _createDB(Database db, int version) async {
@@ -31,6 +36,7 @@ class ExerciseDatabase {
         description TEXT,
         image_url TEXT,
         category INTEGER,
+        ccals FLOAT,
         FOREIGN KEY (category) REFERENCES categories (id) ON DELETE SET NULL
       )
     ''');
@@ -62,9 +68,18 @@ class ExerciseDatabase {
       )
     ''');
 
+    await db.execute('''
+    CREATE TABLE user_fitness_data (
+      date TEXT PRIMARY KEY NOT NULL DEFAULT (strftime('%Y-%m-%d', 'now', 'localtime')),
+      weight_kg REAL NOT NULL,
+      workouts_count INTEGER NOT NULL DEFAULT 0,
+      calories_burned REAL NOT NULL
+    )
+  ''');
+
     await _insertInitialData(db);
   }
-  
+
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('DROP TABLE IF EXISTS workout_exercises');
@@ -72,6 +87,21 @@ class ExerciseDatabase {
       await db.execute('DROP TABLE IF EXISTS exercises');
       await db.execute('DROP TABLE IF EXISTS categories');
       await _createDB(db, newVersion);
+    }
+    if (oldVersion < 3) {
+      await db.execute('''
+      CREATE TABLE user_fitness_data (
+        date TEXT PRIMARY KEY NOT NULL DEFAULT (strftime('%Y-%m-%d', 'now', 'localtime')),
+        weight_kg REAL NOT NULL,
+        workouts_count INTEGER NOT NULL DEFAULT 0,
+        calories_burned REAL NOT NULL
+      )
+    ''');
+    }
+    try {
+      await db.execute('ALTER TABLE exercises ADD COLUMN ccals FLOAT');
+    } catch (e) {
+      print('Столбец ccals уже существует или не может быть добавлен: $e');
     }
   }
 
@@ -108,6 +138,7 @@ class ExerciseDatabase {
         'description': exercise['description'],
         'image_url': exercise['image_url'],
         'category': exercise['category'],
+        'ccals': exercise['ccals']
       });
     }
     await exerciseBatch.commit();
@@ -188,24 +219,24 @@ class ExerciseDatabase {
     });
   }
 
-  Future<void> addExerciseToWorkout({
-    required int workoutId,
-    required int exerciseId,
-    int reps = 10,
-    int orderIndex = 0,
-  }) async {
-    final db = await database;
-
-    await db.insert(
-        'workout_exercises',
-        {
-          'workout_id': workoutId,
-          'exercise_id': exerciseId,
-          'reps': reps,
-          'order_index': orderIndex,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace);
-  }
+  Future<int> insertWorkoutExercise({
+  required int workoutId,
+  required int exerciseId,
+  required int reps,
+  required int orderIndex,
+}) async {
+  final db = await database;
+  return await db.insert(
+    'workout_exercises',
+    {
+      'workout_id': workoutId,
+      'exercise_id': exerciseId,
+      'reps': reps,
+      'order_index': orderIndex,
+    },
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+}
 
   Future<List<Map<String, dynamic>>> getWorkoutExercises(int workoutId) async {
     final db = await database;
@@ -217,6 +248,7 @@ class ExerciseDatabase {
       e.description,
       e.image_url,
       e.category,
+      e.ccals,
       we.reps,
       we.order_index
     FROM workout_exercises we
@@ -293,6 +325,8 @@ class ExerciseDatabase {
       }
     });
   }
+
+  ///           <--------------------ФИТНЕС-ДАННЫЕ ПОЛЬЗОВАТЕЛЯ---------------------->
 
   // Проверка - пустая ли база данных (для первоначальной загрузки).
   Future<bool> isDatabaseEmpty() async {
