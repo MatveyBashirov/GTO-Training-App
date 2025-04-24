@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trainings_app/features/my-trainings-page/views/exercises_page.dart';
 
 class TrainingCard extends StatelessWidget {
   const TrainingCard ({
@@ -9,6 +10,15 @@ class TrainingCard extends StatelessWidget {
 
   final String title;
   final int workoutId;
+
+  void _editWorkout(BuildContext context) {
+    // Навигация на экран редактирования тренировки
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ExercisesPage(workoutId: workoutId),
+      ),
+    );
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -57,6 +67,26 @@ class TrainingCard extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.white),
+                      onPressed: () {
+                        _editWorkout(context);
+                      },
+                    ),
+                    // IconButton(
+                    //   icon: const Icon(Icons.delete, color: Colors.white),
+                    //   onPressed: () {
+                    //     _deleteWorkout(context);
+                    //   },
+                    // ),
+                  ],
                 ),
               ),
             ],

@@ -220,23 +220,23 @@ class ExerciseDatabase {
   }
 
   Future<int> insertWorkoutExercise({
-  required int workoutId,
-  required int exerciseId,
-  required int reps,
-  required int orderIndex,
-}) async {
-  final db = await database;
-  return await db.insert(
-    'workout_exercises',
-    {
-      'workout_id': workoutId,
-      'exercise_id': exerciseId,
-      'reps': reps,
-      'order_index': orderIndex,
-    },
-    conflictAlgorithm: ConflictAlgorithm.replace,
-  );
-}
+    required int workoutId,
+    required int exerciseId,
+    required int reps,
+    required int orderIndex,
+  }) async {
+    final db = await database;
+    return await db.insert(
+      'workout_exercises',
+      {
+        'workout_id': workoutId,
+        'exercise_id': exerciseId,
+        'reps': reps,
+        'order_index': orderIndex,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
 
   Future<List<Map<String, dynamic>>> getWorkoutExercises(int workoutId) async {
     final db = await database;
@@ -269,11 +269,10 @@ class ExerciseDatabase {
       'workouts',
       where: 'id = ?',
       whereArgs: [id],
-      limit: 1,
     );
-    return result.isNotEmpty ? result.first : null;
+    return result.first;
   }
-
+  
   Future<int> updateWorkout({
     required int id,
     required String title,
@@ -293,6 +292,15 @@ class ExerciseDatabase {
       'workouts',
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteWorkoutExercises(int workoutId) async {
+    final db = await database;
+    return await db.delete(
+      'workout_exercises',
+      where: 'workout_id = ?',
+      whereArgs: [workoutId],
     );
   }
 

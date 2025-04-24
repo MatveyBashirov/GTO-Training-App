@@ -1,9 +1,12 @@
+import 'dart:ffi';
+
 class Exercise {
   final int id;
   final String name;
   final String description;
   final String imageUrl;
   final int category;
+  final double ccals;
 
   Exercise({
     required this.id,
@@ -11,6 +14,7 @@ class Exercise {
     required this.description,
     required this.imageUrl,
     required this.category,
+    required this.ccals,
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,7 @@ class Exercise {
       description: json['description'],
       imageUrl: json['image_url'],
       category: json['category'],
+      ccals: json['ccals']
     );
   }
 
@@ -30,6 +35,7 @@ class Exercise {
       'description': description,
       'image_url': imageUrl,
       'category': category,
+      'ccals': ccals
     };
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/my-trainings-page/views/exercise_info.dart';
 import 'package:trainings_app/models/exercise.dart';
@@ -6,7 +8,9 @@ import 'package:trainings_app/training_database.dart';
 import 'package:gif/gif.dart';
 
 class ExercisesPage extends StatefulWidget {
-  const ExercisesPage({super.key});
+  final int? workoutId;
+
+  const ExercisesPage({super.key, this.workoutId});
   @override
   _ExercisesPageState createState() => _ExercisesPageState();
 }
@@ -34,6 +38,28 @@ class _ExercisesPageState extends State<ExercisesPage>
     setState(() => isLoading = true);
     try {
       allExercises = await dbHelper.getExercises();
+
+      // Если это редактирование существующей тренировки
+      if (widget.workoutId != null) {
+        final workout = await dbHelper.getWorkout(widget.workoutId!);
+        _titleController.text = workout!['title'];
+
+        final workoutExercises =
+            await dbHelper.getWorkoutExercises(widget.workoutId!);
+
+        for (final we in workoutExercises) {
+          final exercise = Exercise(
+            id: we['id'] as int,
+            name: we['name'] as String,
+            description: we['description'] as String,
+            imageUrl: we['image_url'] as String,
+            category: we['category'] as int,
+            ccals: we['ccals'] as double,
+          );
+          selectedExercises.add(exercise);
+          exerciseReps[exercise.id] = we['reps'];
+        }
+      }
     } catch (e) {
       print('Error loading exercises: $e');
       allExercises = [];
@@ -69,82 +95,101 @@ class _ExercisesPageState extends State<ExercisesPage>
       return;
     }
 
-    final workoutId = await dbHelper.createWorkout(title: _titleController.text);
+    try {
+      if (widget.workoutId == null) {
+        final workoutId =
+            await dbHelper.createWorkout(title: _titleController.text);
 
-    for (int i = 0; i < selectedExercises.length; i++) {
-      final exercise = selectedExercises[i];
-      await dbHelper.insertWorkoutExercise(
-        workoutId: workoutId,
-        exerciseId: exercise.id,
-        reps: exerciseReps[exercise.id] ?? 10,
-        orderIndex: i,
+        for (int i = 0; i < selectedExercises.length; i++) {
+          final exercise = selectedExercises[i];
+          await dbHelper.insertWorkoutExercise(
+            workoutId: workoutId,
+            exerciseId: exercise.id,
+            reps: exerciseReps[exercise.id] ?? 10,
+            orderIndex: i,
+          );
+        }
+      } else {
+        await dbHelper.updateWorkout(
+          id: widget.workoutId!,
+          title: _titleController.text,
+        );
+
+        // Удаляем все упражнения тренировки
+        await dbHelper.deleteWorkoutExercises(widget.workoutId!);
+
+        // Добавляем новые упражнения
+        for (int i = 0; i < selectedExercises.length; i++) {
+          final exercise = selectedExercises[i];
+          await dbHelper.insertWorkoutExercise(
+            workoutId: widget.workoutId!,
+            exerciseId: exercise.id,
+            reps: exerciseReps[exercise.id] ?? 10,
+            orderIndex: i,
+          );
+        }
+      }
+      Navigator.pop(context, true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка сохранения: $e')),
       );
     }
-
-    Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Создать тренировку'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveWorkout,
-          )
-        ],
-
-      ),
-      body: Padding( 
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Название тренировки',
-                  border: OutlineInputBorder()
-                ),
-                validator: (value){
-                  if(value == null || value.isEmpty){
-                    return 'Введите название тренировки';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Выбранные упражнения: ',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.primaryColor
-                ),
-              ),
-              _buildSelectedExercisesList(),
-              const Divider(),
-              Text(
-                'Список всех упражнений: ',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.primaryColor
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _buildAllExercisesList(),
-              ),
-            ],
-          )
+        appBar: AppBar(
+          title: const Text('Создать тренировку'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _saveWorkout,
+            )
+          ],
         ),
-      )
-    );
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                        labelText: 'Название тренировки',
+                        border: OutlineInputBorder()),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Введите название тренировки';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Выбранные упражнения: ',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(color: theme.primaryColor),
+                  ),
+                  _buildSelectedExercisesList(),
+                  const Divider(),
+                  Text(
+                    'Список всех упражнений: ',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(color: theme.primaryColor),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _buildAllExercisesList(),
+                  ),
+                ],
+              )),
+        ));
   }
 
-  
-  
   @override
   void dispose() {
     _controller.dispose();
@@ -152,8 +197,8 @@ class _ExercisesPageState extends State<ExercisesPage>
   }
 
   Widget _buildAllExercisesList() {
-  final theme = Theme.of(context);
-  if (allExercises.isEmpty) {
+    final theme = Theme.of(context);
+    if (allExercises.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -162,75 +207,73 @@ class _ExercisesPageState extends State<ExercisesPage>
       itemBuilder: (context, index) {
         final exercise = allExercises[index];
         return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ExerciseInfo(
-                            exerciseName: exercise.name,
-                            description: exercise.description,
-                            imageUrl: exercise.imageUrl,
-                          ),
-                        ),
-                      );
-                      },
-                      child: Card(
-                        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        child: Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Row(
-                            children: [
-                              // Изображение (первый кадр GIF)
-                              Container(
-                                width: 60, // Фиксированная ширина
-                                height: 60, // Фиксированная высота
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Gif(
-                                  image: AssetImage(exercise.imageUrl),
-                                  controller: _controller,
-                                  autostart: Autostart.no,
-                                  placeholder: (context) => Center(
-                                    child: Icon(Icons.fitness_center, size: 30),
-                                  ),
-                                  fit: BoxFit.cover, // Заполнение контейнера
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      exercise.name,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Кнопка "+" / галочка
-                              IconButton(
-                                icon: Icon(Icons.add,
-                                        color: theme.colorScheme.primary),
-                                onPressed: () =>
-                                    _addExercise(exercise),
-                              ),
-                            ],
-                          ),
-                        ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExerciseInfo(
+                  exerciseName: exercise.name,
+                  description: exercise.description,
+                  imageUrl: exercise.imageUrl,
+                ),
+              ),
+            );
+          },
+          child: Card(
+            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  // Изображение (первый кадр GIF)
+                  Container(
+                    width: 60, // Фиксированная ширина
+                    height: 60, // Фиксированная высота
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Gif(
+                      image: AssetImage(exercise.imageUrl),
+                      controller: _controller,
+                      autostart: Autostart.no,
+                      placeholder: (context) => Center(
+                        child: Icon(Icons.fitness_center, size: 30),
                       ),
-                    );
+                      fit: BoxFit.cover, // Заполнение контейнера
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          exercise.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Кнопка "+" / галочка
+                  IconButton(
+                    icon: Icon(Icons.add, color: theme.colorScheme.primary),
+                    onPressed: () => _addExercise(exercise),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
       },
     );
-}
+  }
 
-Widget _buildSelectedExercisesList() {
-  if (selectedExercises.isEmpty) {
+  Widget _buildSelectedExercisesList() {
+    if (selectedExercises.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
         child: Text('Нет выбранных упражнений'),
@@ -276,5 +319,5 @@ Widget _buildSelectedExercisesList() {
         );
       },
     );
-}
+  }
 }
