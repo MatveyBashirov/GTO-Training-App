@@ -70,6 +70,9 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                     return TrainingCard(
                       title: workout['title'],
                       workoutId: workout['id'],
+                      onDeleted: () => setState(() {
+                        workouts = workouts.where((w) => w['id'] != workout['id']).toList();
+                      }),
                     );
                   },
                 ),

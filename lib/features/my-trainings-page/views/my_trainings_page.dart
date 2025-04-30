@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/features/homepage/widgets/training-card.dart';
 import 'package:trainings_app/features/my-trainings-page/views/exercises_page.dart';
-import 'package:trainings_app/models/workout.dart';
 import 'package:trainings_app/training_database.dart';
 
 class SelectWorkoutScreen extends StatefulWidget {
@@ -39,8 +38,7 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) => const ExercisesPage()),
+            MaterialPageRoute(builder: (context) => const ExercisesPage()),
           );
           if (result == true) {
             _loadWorkouts(); // Обновляем список тренировок после создания новой
@@ -61,6 +59,9 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
                     return TrainingCard(
                       title: workout['title'],
                       workoutId: workout['id'],
+                      onDeleted: () => setState(() {
+                        workouts = workouts.where((w) => w['id'] != workout['id']).toList();
+                      }),
                     );
                   },
                 ),

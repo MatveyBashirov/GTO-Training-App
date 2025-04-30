@@ -59,7 +59,6 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: TrainingAppBar(title: workoutTitle),
       body: isLoading

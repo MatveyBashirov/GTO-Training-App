@@ -1,23 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/my-trainings-page/views/exercises_page.dart';
+import 'package:trainings_app/training_database.dart';
 
 class TrainingCard extends StatelessWidget {
   const TrainingCard ({
     super.key,
     required this.title,
     required this.workoutId,
+    required this.onDeleted,
   });
 
   final String title;
   final int workoutId;
+  final VoidCallback  onDeleted;
 
   void _editWorkout(BuildContext context) {
-    // Навигация на экран редактирования тренировки
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ExercisesPage(workoutId: workoutId),
       ),
     );
+  }
+
+  Future<void> _deleteWorkout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Удалить тренировку?'),
+        content: Text('Вы уверены, что хотите удалить тренировку "$title"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      try {
+        final db = ExerciseDatabase.instance;
+        await db.deleteWorkout(workoutId);
+        
+        onDeleted();
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Тренировка "$title" удалена')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка при удалении: $e')),
+          );
+        }
+      }
+    }
   }
   
   @override
@@ -80,12 +122,12 @@ class TrainingCard extends StatelessWidget {
                         _editWorkout(context);
                       },
                     ),
-                    // IconButton(
-                    //   icon: const Icon(Icons.delete, color: Colors.white),
-                    //   onPressed: () {
-                    //     _deleteWorkout(context);
-                    //   },
-                    // ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.white),
+                      onPressed: () {
+                        _deleteWorkout(context);
+                      },
+                    ),
                   ],
                 ),
               ),

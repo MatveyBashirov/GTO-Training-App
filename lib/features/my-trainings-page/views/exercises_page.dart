@@ -1,9 +1,6 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/my-trainings-page/views/exercise_info.dart';
 import 'package:trainings_app/models/exercise.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/training_database.dart';
 import 'package:gif/gif.dart';
 
