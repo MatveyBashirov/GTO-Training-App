@@ -22,7 +22,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   ///Список бокового меню
   final List<String> drawerRoutes = [
     "/myworkouts",
-    "/",
+    "/stats",
     "/",
   ];
 

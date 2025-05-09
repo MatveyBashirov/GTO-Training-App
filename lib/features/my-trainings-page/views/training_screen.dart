@@ -12,6 +12,7 @@ class TrainingScreen extends StatefulWidget {
 }
 
 class TrainingScreenState extends State<TrainingScreen> {
+  final DateTime? _startTime = DateTime.now();
   int _currentExerciseIndex = 0;
   bool get _isLastExercise =>
       _currentExerciseIndex == widget.exercises.length - 1;
@@ -25,10 +26,18 @@ class TrainingScreenState extends State<TrainingScreen> {
   }
 
   void _completeTraining() {
+    final duration = DateTime.now().difference(_startTime!);
+    double totalCalories = 0.0;
+    for (var exercise in widget.exercises) {
+      final reps = exercise['reps'] as int;
+      final caloriesPerRep = exercise['ccals'] as double;
+      totalCalories += reps * caloriesPerRep;
+    }
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => CompletionScreen(),
+        builder: (context) => CompletionScreen(caloriesBurned: totalCalories, duration: duration,),
       ),
     );
   }
@@ -37,6 +46,7 @@ class TrainingScreenState extends State<TrainingScreen> {
   Widget build(BuildContext context) {
     final exercise = widget.exercises[_currentExerciseIndex];
     final isLastExercise = _currentExerciseIndex == widget.exercises.length - 1;
+    double _caloriesBurned = 0.0;
 
     return Scaffold(
       appBar: TrainingAppBar(title: widget.workoutTitle),

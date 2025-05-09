@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class Exercise {
   final int id;
   final String name;

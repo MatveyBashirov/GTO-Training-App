@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trainings_app/models/exercise.dart';
+import 'package:trainings_app/models/user_data.dart';
+import 'package:trainings_app/services/auth_service.dart';
 
 class ExerciseDatabase {
   static final ExerciseDatabase instance = ExerciseDatabase._init();
   static Database? _database;
+  final AuthService _authService = AuthService(Supabase.instance.client);
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   ExerciseDatabase._init();
 
@@ -272,7 +278,7 @@ class ExerciseDatabase {
     );
     return result.first;
   }
-  
+
   Future<int> updateWorkout({
     required int id,
     required String title,
@@ -335,6 +341,160 @@ class ExerciseDatabase {
   }
 
   ///           <--------------------ФИТНЕС-ДАННЫЕ ПОЛЬЗОВАТЕЛЯ---------------------->
+
+  Future<void> initStats() async {
+    final user = _authService.currentUser;
+    if (user != null) {
+      await _syncWithSupabase();
+    }
+
+    // Подписываемся на изменения состояния аутентификации
+    _authService.authStateChanges.listen((authState) {
+      if (authState.event == AuthChangeEvent.signedIn) {
+        _syncWithSupabase();
+      } else if (authState.event == AuthChangeEvent.signedOut) {
+        _clearLocalStats();
+      }
+    });
+  }
+
+  Future<void> _syncWithSupabase() async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      final data =
+          await _supabase.from('user_stats').select().eq('user_id', userId);
+
+      final db = await database;
+      final batch = db.batch();
+      for (var item in data) {
+        final stat = UserStats.fromJson(item);
+        batch.insert(
+          'user_fitness_data',
+          stat.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      await batch.commit();
+    } catch (e) {
+      print('Error syncing with Supabase: $e');
+    }
+  }
+
+  Future<void> _clearLocalStats() async {
+    final db = await database;
+    await db.delete('user_fitness_data');
+  }
+
+  Future<void> saveStats(UserStats stats) async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) throw Exception('User not authenticated');
+
+    final db = await database;
+    await db.insert(
+      'user_fitness_data',
+      stats.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    try {
+      await _supabase.from('user_stats').upsert({
+        'user_id': userId,
+        'date': stats.date.toIso8601String(),
+        'workout_count': stats.workoutCount,
+        'calories_burned': stats.caloriesBurned,
+        'weight': stats.weight,
+      });
+    } catch (e) {
+      print('Error saving to Supabase: $e');
+    }
+  }
+
+  Future<List<UserStats>> getStats(DateTime start, DateTime end) async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return [];
+
+    // Попробуем получить данные из Supabase
+    List<UserStats> stats = [];
+    final db = await database;
+    final localResult = await db.query(
+      'user_fitness_data',
+      where: 'date >= ? AND date <= ?',
+      whereArgs: [
+        start.toIso8601String().substring(0, 10),
+        end.toIso8601String().substring(0, 10),
+      ],
+    );
+    stats = localResult.map((map) => UserStats.fromMap(map)).toList();
+
+    // Проверяем подключение к интернету
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult != ConnectivityResult.none) {
+      try {
+        // Попробуем обновить данные из Supabase
+        final data = await _supabase
+            .from('user_stats')
+            .select()
+            .eq('user_id', userId)
+            .gte('date', start.toIso8601String().substring(0, 10))
+            .lte('date', end.toIso8601String().substring(0, 10));
+
+        final supabaseStats =
+            data.map((item) => UserStats.fromJson(item)).toList();
+
+        // Обновляем локальную базу с данными из Supabase
+        final batch = db.batch();
+        for (var stat in supabaseStats) {
+          batch.insert(
+            'user_fitness_data',
+            stat.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        await batch.commit();
+
+        // Обновляем stats с данными из Supabase
+        stats = supabaseStats;
+      } catch (e) {
+        print('Error fetching from Supabase: $e');
+        // Если ошибка, используем локальные данные, которые уже загружены
+      }
+    }
+
+    // Заполняем пропущенные дни
+    final filledStats = <UserStats>[];
+    for (var day = start;
+        day.isBefore(end) || day.isAtSameMomentAs(end);
+        day = day.add(Duration(days: 1))) {
+      final existingStat = stats.firstWhere(
+        (stat) =>
+            stat.date.day == day.day &&
+            stat.date.month == day.month &&
+            stat.date.year == day.year,
+        orElse: () => UserStats(date: day),
+      );
+      filledStats.add(existingStat);
+    }
+
+    return filledStats;
+  }
+
+  Future<bool> isFirstWorkoutToday() async {
+    final today = DateTime.now();
+    final todayString = today.toIso8601String().substring(0, 10);
+    final db = await database;
+    final result = await db.query(
+      'user_fitness_data',
+      where: 'date = ?',
+      whereArgs: [todayString],
+    );
+    if (result.isEmpty) {
+      return true;
+    }
+    final stat = UserStats.fromMap(result.first);
+    return stat.workoutCount == 0;
+  }
 
   // Проверка - пустая ли база данных (для первоначальной загрузки).
   Future<bool> isDatabaseEmpty() async {

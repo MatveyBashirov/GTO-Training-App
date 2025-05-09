@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -37,59 +39,57 @@ class _SignUpScreen extends State<SignUpScreen> {
     });
   }
 
-Future<void> signUp() async { 
-  final isValid = formKey.currentState!.validate();
-  if (!isValid) return;
+Future<void> signUp() async {
+    final isValid = formKey.currentState!.validate();
+    if (!isValid) return;
 
-  if (passwordTextInputController.text !=
-      passwordTextRepeatInputController.text) {
-    SnackBarService.showSnackBar(
-      context,
-      'Пароли должны совпадать',
-      true,
-    );
-    return;
-  }
+    setState(() => isLoading = true);
 
-  setState(() => isLoading = true);
+    try {
+      final response = await supabase.auth
+          .signUp(
+            email: emailTextInputController.text.trim(),
+            password: passwordTextInputController.text.trim(),
+          )
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        throw TimeoutException('Превышено время ожидания сервера');
+      });
 
-  try {
-    final response = await supabase.auth.signUp(
-      email: emailTextInputController.text.trim(),
-      password: passwordTextInputController.text.trim(),
-    );
-
-    if (response.user?.identities?.isEmpty ?? true) {
-      // Если identities пуст - пользователь уже существовал
-      SnackBarService.showSnackBar(
-        context, 
-        'Этот email уже зарегистрирован', 
-        true
-      );
-    } else {
+      if (response.user?.identities?.isEmpty ?? true) {
+        if (mounted) {
+          SnackBarService.showSnackBar(
+            context,
+            'Этот email уже зарегистрирован',
+            true,
+          );
+        }
+      } else {
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      }
+    } on AuthException catch (e) {
       if (mounted) {
-        Navigator.pushReplacement(
+        SnackBarService.showSnackBar(context, e.message, true);
+      }
+    } on TimeoutException catch (e) {
+      if (mounted) {
+        SnackBarService.showSnackBar(context, e.message ?? 'Ошибка сети', true);
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarService.showSnackBar(
           context,
-          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+          'Неизвестная ошибка! Попробуйте еще раз или обратитесь в поддержку.',
+          true,
         );
       }
-    }
-  } on AuthException catch (e) {    
-    if (mounted) {
-      SnackBarService.showSnackBar(context, e.message, true);
-    }
-  } catch(e) {
-    SnackBarService.showSnackBar(
-      context, 
-      'Неизвестная ошибка! Попробуйте еще раз или обратитесь в поддержку.', 
-      true
-    );
-  } finally {
-    if (mounted) {
-      setState(() => isLoading = false);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -44,18 +46,43 @@ class _LoginScreenState extends State<LoginScreen> {
       final response = await supabase.auth.signInWithPassword(
         email: emailTextInputController.text.trim(),
         password: passwordTextInputController.text.trim(),
-      );
+      ).timeout(const Duration(seconds: 10), onTimeout: () {
+        throw TimeoutException('Превышено время ожидания сервера');});
+
       if (response.user == null) {
-        throw Exception('Ошибка в логине или пароле, повторите попытку!');
+        throw Exception('Ошибка авторизации: пользователь не найден!');
       }
-    } on AuthException {
+  } on AuthException catch (e) {
+      if (mounted) {
+        if (e.code == 'email_not_confirmed') {
+          SnackBarService.showSnackBar(
+            context,
+            'Пожалуйста, подтвердите ваш email перед входом',
+            true,
+          );
+        } else if (e.code == 'invalid_credentials') {
+          SnackBarService.showSnackBar(
+            context,
+            'Пользователь не найден или неверный пароль',
+            true,
+          );
+        } else {
+          SnackBarService.showSnackBar(
+            context,
+            'Ошибка авторизации: ${e.message}',
+            true,
+          );
+        }
+      }
+    } on TimeoutException catch (e) {
+      if (mounted) {
         SnackBarService.showSnackBar(
           context,
-          'Неизвестная ошибка! Попробуйте еще раз или обратитесь в поддержку.',
+          e.message ?? 'Ошибка сети',
           true,
         );
-        return;
-  }
+      }
+    } 
   finally {
       if (mounted) {
         setState(() => isLoading = false);
