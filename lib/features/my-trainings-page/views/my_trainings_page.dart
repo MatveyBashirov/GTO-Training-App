@@ -24,7 +24,7 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
 
   Future<void> _loadWorkouts() async {
     setState(() => isLoading = true);
-    workouts = await dbHelper.getAllWorkouts();
+    workouts = await dbHelper.workoutManager.getAllWorkouts();
     setState(() => isLoading = false);
   }
 

@@ -33,22 +33,22 @@ class CompletionScreenState extends State<CompletionScreen> {
   Future<void> _saveWorkoutData() async {
     final today = DateTime.now();
     // Получаем текущую статистику за сегодня
-    final todayStats = await _db.getStats(today, today);
+    final todayStats = await _db.userStatsManager.getStats(today, today);
     final existingStat = todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
 
     // Обновляем статистику: +1 тренировка, добавляем калории
     final newStat = UserStats(
       date: today,
-      workoutCount: existingStat.workoutCount + 1,
-      caloriesBurned: existingStat.caloriesBurned + widget.caloriesBurned,
+      workoutCount: (existingStat.workoutCount ?? 0) + 1,
+      caloriesBurned: (existingStat.caloriesBurned ?? 0) + widget.caloriesBurned,
       weight: existingStat.weight,
     );
 
-    await _db.saveStats(newStat);
+    await _db.userStatsManager.saveStats(newStat);
   }
 
   Future<void> _checkFirstWorkout() async {
-    final isFirst = await _db.isFirstWorkoutToday();
+    final isFirst = await _db.userStatsManager.isFirstWorkoutToday();
     if (isFirst) {
       _showWeightDialog();
     }
@@ -74,7 +74,7 @@ class CompletionScreenState extends State<CompletionScreen> {
               final weight = double.tryParse(_weightController.text);
               if (weight != null && weight > 0) {
                 final today = DateTime.now();
-                final todayStats = await _db.getStats(today, today);
+                final todayStats = await _db.userStatsManager.getStats(today, today);
                 final existingStat = todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
 
                 // Обновляем статистику с новым весом
@@ -85,7 +85,7 @@ class CompletionScreenState extends State<CompletionScreen> {
                   weight: weight,
                 );
 
-                await _db.saveStats(newStat);
+                await _db.userStatsManager.saveStats(newStat);
                 Navigator.pop(context);
                 _weightController.clear();
               } else {

@@ -34,13 +34,13 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
     setState(() => isLoading = true);
 
     // Загружаем название тренировки
-    final workout = await dbHelper.getWorkout(widget.workoutId);
+    final workout = await dbHelper.workoutManager.getWorkout(widget.workoutId);
     if (workout != null) {
       workoutTitle = workout['title'];
     }
 
     // Загружаем упражнения для тренировки
-    workoutExercises = await dbHelper.getWorkoutExercises(widget.workoutId);
+    workoutExercises = await dbHelper.workoutManager.getWorkoutExercises(widget.workoutId);
 
     setState(() => isLoading = false);
   }

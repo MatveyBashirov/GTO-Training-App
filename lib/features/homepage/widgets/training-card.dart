@@ -43,7 +43,7 @@ class TrainingCard extends StatelessWidget {
     if (confirmed == true && context.mounted) {
       try {
         final db = ExerciseDatabase.instance;
-        await db.deleteWorkout(workoutId);
+        await db.workoutManager.deleteWorkout(workoutId);
         
         onDeleted();
         

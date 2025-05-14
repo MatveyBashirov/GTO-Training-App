@@ -34,15 +34,15 @@ class _ExercisesPageState extends State<ExercisesPage>
   Future<void> _loadExercises() async {
     setState(() => isLoading = true);
     try {
-      allExercises = await dbHelper.getExercises();
+      allExercises = await dbHelper.exerciseManager.getExercises();
 
       // Если это редактирование существующей тренировки
       if (widget.workoutId != null) {
-        final workout = await dbHelper.getWorkout(widget.workoutId!);
+        final workout = await dbHelper.workoutManager.getWorkout(widget.workoutId!);
         _titleController.text = workout!['title'];
 
         final workoutExercises =
-            await dbHelper.getWorkoutExercises(widget.workoutId!);
+            await dbHelper.workoutManager.getWorkoutExercises(widget.workoutId!);
 
         for (final we in workoutExercises) {
           final exercise = Exercise(
@@ -95,11 +95,11 @@ class _ExercisesPageState extends State<ExercisesPage>
     try {
       if (widget.workoutId == null) {
         final workoutId =
-            await dbHelper.createWorkout(title: _titleController.text);
+            await dbHelper.workoutManager.createWorkout(title: _titleController.text);
 
         for (int i = 0; i < selectedExercises.length; i++) {
           final exercise = selectedExercises[i];
-          await dbHelper.insertWorkoutExercise(
+          await dbHelper.workoutManager.insertWorkoutExercise(
             workoutId: workoutId,
             exerciseId: exercise.id,
             reps: exerciseReps[exercise.id] ?? 10,
@@ -107,18 +107,18 @@ class _ExercisesPageState extends State<ExercisesPage>
           );
         }
       } else {
-        await dbHelper.updateWorkout(
+        await dbHelper.workoutManager.updateWorkout(
           id: widget.workoutId!,
           title: _titleController.text,
         );
 
         // Удаляем все упражнения тренировки
-        await dbHelper.deleteWorkoutExercises(widget.workoutId!);
+        await dbHelper.workoutManager.deleteWorkoutExercises(widget.workoutId!);
 
         // Добавляем новые упражнения
         for (int i = 0; i < selectedExercises.length; i++) {
           final exercise = selectedExercises[i];
-          await dbHelper.insertWorkoutExercise(
+          await dbHelper.workoutManager.insertWorkoutExercise(
             workoutId: widget.workoutId!,
             exerciseId: exercise.id,
             reps: exerciseReps[exercise.id] ?? 10,

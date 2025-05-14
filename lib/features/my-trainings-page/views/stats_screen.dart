@@ -20,13 +20,13 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   void initState() {
     super.initState();
-    _db.initStats().then((_) => _loadStats());
+    _db.userStatsManager.initStats().then((_) => _loadStats());
   }
 
   Future<void> _loadStats() async {
     final now = DateTime.now();
     final start = now.subtract(Duration(days: 7));
-    final stats = await _db.getStats(start, now);
+    final stats = await _db.userStatsManager.getStats(start, now);
     setState(() {
       _stats = stats;
     });
@@ -49,7 +49,7 @@ class _StatsScreenState extends State<StatsScreen> {
         caloriesBurned: existingStat.caloriesBurned,
         weight: weight,
       );
-      await _db.saveStats(newStat);
+      await _db.userStatsManager.saveStats(newStat);
       await _loadStats();
       _weightController.clear();
     }
@@ -76,7 +76,7 @@ class _StatsScreenState extends State<StatsScreen> {
                             x: e.key,
                             barRods: [
                               BarChartRodData(
-                                  toY: e.value.caloriesBurned,
+                                  toY: e.value.caloriesBurned ?? 0.0,
                                   color: Colors.blue,
                                   width: 10,
                                   borderRadius: BorderRadius.all(Radius.zero)),
@@ -144,7 +144,7 @@ class _StatsScreenState extends State<StatsScreen> {
                             x: e.key,
                             barRods: [
                               BarChartRodData(
-                                  toY: e.value.weight,
+                                  toY: e.value.weight ?? 0.0,
                                   color: Colors.blue,
                                   width: 10,
                                   borderRadius: BorderRadius.all(Radius.zero)),

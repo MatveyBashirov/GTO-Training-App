@@ -12,18 +12,19 @@ class TrainingHomePage extends StatefulWidget {
 }
 
 class _TrainingHomePageState extends State<TrainingHomePage> {
-  ///Список бокового меню
+
   final List<String> drawerItems = [
     "Мои тренировки",
     "Статистика",
     "Нормативы ГТО",
+    "Личный кабинет",
   ];
 
-  ///Список бокового меню
   final List<String> drawerRoutes = [
     "/myworkouts",
     "/stats",
     "/",
+    "/profile",
   ];
 
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
@@ -44,7 +45,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
 
   Future<void> _loadWorkouts() async {
     setState(() => isLoading = true);
-    workouts = await dbHelper.getAllWorkouts();
+    workouts = await dbHelper.workoutManager.getAllWorkouts();
     setState(() => isLoading = false);
   }
 
