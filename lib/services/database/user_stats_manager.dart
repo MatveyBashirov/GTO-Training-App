@@ -5,7 +5,7 @@ import 'package:trainings_app/models/user_data.dart';
 import 'package:trainings_app/services/auth_service.dart';
 import 'package:trainings_app/training_database.dart';
 
-class UserStatsManager{
+class UserStatsManager {
   final ExerciseDatabase _db;
   final AuthService _authService;
   final SupabaseClient _supabase;
@@ -75,6 +75,7 @@ class UserStatsManager{
         'workout_count': stats.workoutCount,
         'calories_burned': stats.caloriesBurned,
         'weight': stats.weight,
+        'points': stats.points,
       });
     } catch (e) {
       print('Error saving to Supabase: $e');
@@ -157,5 +158,46 @@ class UserStatsManager{
     }
     final stat = UserStats.fromMap(result.first);
     return stat.workoutCount == 0;
+  }
+
+  Future<void> awardPointsForWorkout() async {
+    final today = DateTime.now();
+    final yesterday = today.subtract(Duration(days: 1));
+
+    final todayStats = await getStats(today, today);
+    final yesterdayStats = await getStats(yesterday, yesterday);
+
+    final existingTodayStat =
+        todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
+    int currentPoints = existingTodayStat.points ?? 0;
+
+    currentPoints += 1;
+
+    if (yesterdayStats.isNotEmpty &&
+        (yesterdayStats.first.workoutCount ?? 0) > 0) {
+      currentPoints += 3;
+    }
+
+    final updatedStat = UserStats(
+      date: today,
+      workoutCount: (existingTodayStat.workoutCount ?? 0) + 1,
+      caloriesBurned: existingTodayStat.caloriesBurned,
+      weight: existingTodayStat.weight,
+      points: currentPoints,
+    );
+
+    await saveStats(updatedStat);
+  }
+
+  Future<int> getTotalPoints() async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return 0;
+
+    final stats = await getStats(DateTime(2000), DateTime.now());
+    int total = 0;
+    for (var stat in stats) {
+      total += stat.points ?? 0;
+    }
+    return total;
   }
 }

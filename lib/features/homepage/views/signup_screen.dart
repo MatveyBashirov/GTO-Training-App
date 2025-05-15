@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/features/homepage/services/snakbar_service.dart';
-import 'package:trainings_app/features/homepage/views/verify_email_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});

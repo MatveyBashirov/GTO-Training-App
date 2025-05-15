@@ -32,19 +32,30 @@ class CompletionScreenState extends State<CompletionScreen> {
 
   Future<void> _saveWorkoutData() async {
     final today = DateTime.now();
-    // Получаем текущую статистику за сегодня
+    final yesterday = today.subtract(Duration(days: 1));
+    
     final todayStats = await _db.userStatsManager.getStats(today, today);
-    final existingStat = todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
+  final yesterdayStats = await _db.userStatsManager.getStats(yesterday, yesterday);
 
-    // Обновляем статистику: +1 тренировка, добавляем калории
-    final newStat = UserStats(
-      date: today,
-      workoutCount: (existingStat.workoutCount ?? 0) + 1,
-      caloriesBurned: (existingStat.caloriesBurned ?? 0) + widget.caloriesBurned,
-      weight: existingStat.weight,
-    );
+  final existingTodayStat = todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
+  int currentPoints = existingTodayStat.points ?? 0;
 
-    await _db.userStatsManager.saveStats(newStat);
+  currentPoints += 1;
+
+  final isFirstWorkout = await _db.userStatsManager.isFirstWorkoutToday();
+  if (isFirstWorkout && yesterdayStats.isNotEmpty && (yesterdayStats.first.workoutCount ?? 0) > 0) {
+    currentPoints += 3;
+  }
+
+  final newStat = UserStats(
+    date: today,
+    workoutCount: (existingTodayStat.workoutCount ?? 0) + 1,
+    caloriesBurned: (existingTodayStat.caloriesBurned ?? 0) + widget.caloriesBurned,
+    weight: existingTodayStat.weight,
+    points: currentPoints,
+  );
+
+  await _db.userStatsManager.saveStats(newStat);
   }
 
   Future<void> _checkFirstWorkout() async {

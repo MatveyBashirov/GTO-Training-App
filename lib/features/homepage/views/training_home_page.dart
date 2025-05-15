@@ -31,17 +31,27 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
   Map<String, dynamic>? randomWorkout;
   bool isLoading = false;
+  int _totalPoints = 0;
 
   @override
   void initState() {
     super.initState();
     _loadRandomWorkout();
+    _loadTotalPoints();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     precacheImage(const AssetImage('assets/img/drawer_img.jpg'), context);
+    _loadTotalPoints();
+  }
+
+  Future<void> _loadTotalPoints() async {
+    final points = await dbHelper.userStatsManager.getTotalPoints();
+    setState(() {
+      _totalPoints = points;
+    });
   }
 
   Future<void> _loadRandomWorkout() async {
@@ -102,7 +112,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                   ),
                 ),
               ),
-              Expanded(
+              Container(
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : randomWorkout == null
@@ -168,6 +178,67 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                               ],
                             ),
                           ),
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 70, 20, 0),
+                  child: Text(
+                    textAlign: TextAlign.center,
+                    'Тренеруйтесь\nи получайте баллы',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.grey.withOpacity(0.7),
+                            offset: Offset(2, 2),
+                            blurRadius: 20,
+                          ),
+                        ]),
+                  ),
+                ),
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                  child: Text(
+                    textAlign: TextAlign.center,
+                    'Ваше текущее количество баллов:',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        color: Colors.blueGrey,
+                        fontSize: 12,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.grey.withOpacity(0.7),
+                            offset: Offset(2, 2),
+                            blurRadius: 20,
+                          ),
+                        ]),
+                  ),
+                ),
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                  child: Text(
+                    textAlign: TextAlign.center,
+                    '$_totalPoints',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 100,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.grey.withOpacity(0.7),
+                            offset: Offset(2, 2),
+                            blurRadius: 20,
+                          ),
+                        ]),
+                  ),
+                ),
               ),
             ],
           ),
