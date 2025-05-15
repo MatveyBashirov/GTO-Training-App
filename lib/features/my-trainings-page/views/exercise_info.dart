@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gif/gif.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 
 class ExerciseInfo extends StatefulWidget {
@@ -31,15 +32,15 @@ class ExerciseInfoState extends State<ExerciseInfo> {
               height: 200,
               color: theme.primaryColor,
               child: Center(
-                child: Image.asset(
-                  widget.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.error, size: 50, color: Colors.red),
-                    );
-                  },
-                ),
+                child: Gif(
+                      image: AssetImage(widget.imageUrl),
+                      autostart:
+                          Autostart.loop,
+                      fit: BoxFit.contain,
+                      placeholder: (context) => const Center(
+                        child: Icon(Icons.fitness_center, size: 30),
+                      ),
+                    ),
               ),
             ),
             Padding(

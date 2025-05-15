@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/models/profile.dart';
 import 'package:trainings_app/services/auth_service.dart';
 
@@ -96,40 +97,109 @@ void _showProfileDialog(BuildContext context) {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final user = authService.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Личный кабинет')),
+      appBar: TrainingAppBar(title: 'Личный кабинет'),
       body: Center(
         child: user == null
             ? const Text('Пожалуйста, войдите в аккаунт')
             : _isLoading
                 ? const CircularProgressIndicator()
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_profile?.firstName != null)
-                        Text(
-                          'Имя: ${_profile!.firstName}',
-                          style: const TextStyle(fontSize: 18),
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor: theme.colorScheme.primary,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // Имя
+                              if (_profile?.firstName != null)
+                                Text(
+                                  'Имя: ${_profile!.firstName}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              const SizedBox(height: 8),
+                              // Фамилия
+                              if (_profile?.lastName != null)
+                                Text(
+                                  'Фамилия: ${_profile!.lastName}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              const SizedBox(height: 8),
+                              // Email
+                              Text(
+                                'Email: ${user.email}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      if (_profile?.lastName != null)
-                        Text(
-                          'Фамилия: ${_profile!.lastName}',
-                          style: const TextStyle(fontSize: 18),
+                        const SizedBox(height: 30),
+                        ElevatedButton(
+                          onPressed: () async {
+                            await authService.signOut();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.white, 
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: const Text(
+                            'Выйти',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      Text(
-                        'Email: ${user.email}',
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          await authService.signOut();
-                        },
-                        child: const Text('Выйти'),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
       ),
     );

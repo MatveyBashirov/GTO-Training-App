@@ -57,6 +57,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: TrainingAppBar(title: 'Статистика'),
       body: Padding(
@@ -64,6 +65,23 @@ class _StatsScreenState extends State<StatsScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                  child: Text(
+                    'Прогресс сожженых ккал',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.grey.withOpacity(0.7),
+                            offset: Offset(2, 2),
+                            blurRadius: 20,
+                          ),
+                        ]),
+                  ),
+                ),
               Container(
                 height: 300,
                 child: BarChart(
@@ -118,7 +136,23 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                  child: Text(
+                    'Показатели веса',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.grey.withOpacity(0.7),
+                            offset: Offset(2, 2),
+                            blurRadius: 20,
+                          ),
+                        ]),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(

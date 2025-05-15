@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trainings_app/models/user_data.dart';
 import 'package:trainings_app/services/auth_service.dart';
 import 'package:trainings_app/services/database/exercise_manager.dart';
 import 'package:trainings_app/services/database/user_stats_manager.dart';
@@ -89,16 +87,10 @@ class ExerciseDatabase {
       date TEXT PRIMARY KEY NOT NULL DEFAULT (strftime('%Y-%m-%d', 'now', 'localtime')),
         workout_count INTEGER,
         calories_burned REAL,
-        weight REAL
+        weight REAL,
+        points INTEGER DEFAULT 0
     )
   ''');
-
-  await db.execute('''
-          CREATE TABLE sync_status (
-            date TEXT PRIMARY KEY,
-            synced INTEGER NOT NULL DEFAULT 0
-          )
-        ''');
 
     await _insertInitialData(db);
   }
@@ -133,9 +125,8 @@ class ExerciseDatabase {
             await db.rawQuery('SELECT COUNT(*) FROM workouts')) ??
         0;
 
-    if (count > 0) return; // Данные уже есть
+    if (count > 0) return;
 
-    // Загружаем данные из JSON
     final exercises = await _loadJsonData('assets/initial_data/exercises.json');
     final categories =
         await _loadJsonData('assets/initial_data/categories.json');
@@ -143,7 +134,6 @@ class ExerciseDatabase {
     final workout_exercises =
         await _loadJsonData('assets/initial_data/workout_exercise.json');
 
-    // Вставляем категории
     final categoryBatch = db.batch();
     for (final category in categories) {
       categoryBatch.insert('categories', {
@@ -201,13 +191,5 @@ class ExerciseDatabase {
       print('Error loading JSON from $path: $e');
       return [];
     }
-  }
-
-  // Проверка - пустая ли база данных (для первоначальной загрузки).
-  Future<bool> isDatabaseEmpty() async {
-    final db = await database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM exercises');
-    final count = Sqflite.firstIntValue(result);
-    return count == 0;
   }
 }

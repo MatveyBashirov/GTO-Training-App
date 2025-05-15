@@ -66,12 +66,7 @@ class TrainingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 30,
-        right: 30,
-        top: 10,
-        bottom: 10,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Card(
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(

@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 final maintheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color.fromARGB(255, 44, 61, 128),
+        seedColor: const Color.fromARGB(255, 79, 99, 178),
         brightness: Brightness.light),
     textTheme: TextTheme(
       titleLarge: GoogleFonts.montserrat(

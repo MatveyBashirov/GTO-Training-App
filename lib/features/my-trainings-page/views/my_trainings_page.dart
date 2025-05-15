@@ -32,7 +32,7 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.colorScheme.secondary,
+      backgroundColor: Colors.white,
       appBar: TrainingAppBar(title: 'Мои тренировки'),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -41,12 +41,12 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
             MaterialPageRoute(builder: (context) => const ExercisesPage()),
           );
           if (result == true) {
-            _loadWorkouts(); // Обновляем список тренировок после создания новой
+            _loadWorkouts();
           }
         },
-        backgroundColor: Colors.white,
+        backgroundColor: theme.colorScheme.primary,
         tooltip: 'Создать тренировку',
-        child: Icon(Icons.add, color: theme.primaryColor),
+        child: Icon(Icons.add, color: Colors.white),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -56,12 +56,15 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
                   itemCount: workouts.length,
                   itemBuilder: (context, index) {
                     final workout = workouts[index];
-                    return TrainingCard(
-                      title: workout['title'],
-                      workoutId: workout['id'],
-                      onDeleted: () => setState(() {
-                        workouts = workouts.where((w) => w['id'] != workout['id']).toList();
-                      }),
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(0,20,0,0),
+                      child: TrainingCard(
+                        title: workout['title'],
+                        workoutId: workout['id'],
+                        onDeleted: () => setState(() {
+                          workouts = workouts.where((w) => w['id'] != workout['id']).toList();
+                        }),
+                      ),
                     );
                   },
                 ),

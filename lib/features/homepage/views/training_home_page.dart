@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/features/drawer/drawer.dart';
@@ -12,29 +14,28 @@ class TrainingHomePage extends StatefulWidget {
 }
 
 class _TrainingHomePageState extends State<TrainingHomePage> {
-
   final List<String> drawerItems = [
     "Мои тренировки",
     "Статистика",
-    "Нормативы ГТО",
+    // "Нормативы ГТО",
     "Личный кабинет",
   ];
 
   final List<String> drawerRoutes = [
     "/myworkouts",
     "/stats",
-    "/",
+    // "/",
     "/profile",
   ];
 
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
-  List<Map<String, dynamic>> workouts = [];
+  Map<String, dynamic>? randomWorkout;
   bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadWorkouts();
+    _loadRandomWorkout();
   }
 
   @override
@@ -43,40 +44,135 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
     precacheImage(const AssetImage('assets/img/drawer_img.jpg'), context);
   }
 
-  Future<void> _loadWorkouts() async {
+  Future<void> _loadRandomWorkout() async {
     setState(() => isLoading = true);
-    workouts = await dbHelper.workoutManager.getAllWorkouts();
+    final workouts = await dbHelper.workoutManager.getAllWorkouts();
+    if (workouts.isNotEmpty) {
+      final randomIndex = Random().nextInt(workouts.length);
+      randomWorkout = workouts[randomIndex];
+    } else {
+      randomWorkout = null;
+    }
     setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final theme = Theme.of(context);
     return Scaffold(
       drawerScrimColor: Colors.black45,
       backgroundColor: theme.colorScheme.secondary,
-      appBar: TrainingAppBar(title: 'Упражнения для вас'),
+      appBar: TrainingAppBar(title: 'Главная страница'),
       drawer: MainDrawer(
         drawerItems: drawerItems,
         drawerRoutes: drawerRoutes,
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : workouts.isEmpty
-              ? Center(child: Text('Нет тренировок'))
-              : ListView.builder(
-                  itemCount: workouts.length,
-                  itemBuilder: (context, index) {
-                    final workout = workouts[index];
-                    return TrainingCard(
-                      title: workout['title'],
-                      workoutId: workout['id'],
-                      onDeleted: () => setState(() {
-                        workouts = workouts.where((w) => w['id'] != workout['id']).toList();
-                      }),
-                    );
-                  },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.background,
+              theme.colorScheme.surface.withOpacity(0.9),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                  child: Text(
+                    'Попробуйте эту тренировку!',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.grey.withOpacity(0.7),
+                            offset: Offset(2, 2),
+                            blurRadius: 20,
+                          ),
+                        ]),
+                  ),
                 ),
+              ),
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : randomWorkout == null
+                        ? Center(
+                            child: Text(
+                              'Нет тренировок',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onBackground
+                                    .withOpacity(0.6),
+                              ),
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.all(0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 16),
+                                AnimatedOpacity(
+                                  opacity: 1.0,
+                                  duration: const Duration(milliseconds: 600),
+                                  curve: Curves.easeOut,
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(),
+                                    child: TrainingCard(
+                                      title: randomWorkout!['title'],
+                                      workoutId: randomWorkout!['id'],
+                                      onDeleted: () async {
+                                        await dbHelper.workoutManager
+                                            .deleteWorkout(
+                                                randomWorkout!['id']);
+                                        await _loadRandomWorkout();
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Center(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _loadRandomWorkout,
+                                    icon: const Icon(Icons.refresh, size: 20),
+                                    label: const Text('Выбрать другую'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          theme.colorScheme.primary,
+                                      foregroundColor:
+                                          theme.colorScheme.onPrimary,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 32,
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 2,
+                                      textStyle:
+                                          theme.textTheme.labelLarge?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

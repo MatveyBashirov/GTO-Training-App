@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gif/gif.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/features/my-trainings-page/views/completion_screen.dart';
 
@@ -6,7 +7,8 @@ class TrainingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> exercises;
   final String workoutTitle;
 
-  const TrainingScreen({super.key, required this.exercises, required this.workoutTitle});
+  const TrainingScreen(
+      {super.key, required this.exercises, required this.workoutTitle});
   @override
   State<StatefulWidget> createState() => TrainingScreenState();
 }
@@ -37,7 +39,10 @@ class TrainingScreenState extends State<TrainingScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => CompletionScreen(caloriesBurned: totalCalories, duration: duration,),
+        builder: (context) => CompletionScreen(
+          caloriesBurned: totalCalories,
+          duration: duration,
+        ),
       ),
     );
   }
@@ -61,9 +66,14 @@ class TrainingScreenState extends State<TrainingScreen> {
                     height: 250,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: AssetImage(exercise['image_url']),
-                        fit: BoxFit.contain,
+                    ),
+                    child: Gif(
+                      image: AssetImage(exercise['image_url']),
+                      autostart:
+                          Autostart.loop,
+                      fit: BoxFit.contain,
+                      placeholder: (context) => const Center(
+                        child: Icon(Icons.fitness_center, size: 30),
                       ),
                     ),
                   ),
@@ -81,9 +91,10 @@ class TrainingScreenState extends State<TrainingScreen> {
                   const SizedBox(height: 20),
                   Text(
                     'Повторений: ${exercise['reps']}',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).primaryColor
-                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(color: Theme.of(context).primaryColor),
                   ),
                 ],
               ),
@@ -93,7 +104,9 @@ class TrainingScreenState extends State<TrainingScreen> {
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
               onPressed: _nextExercise,
-              child: Text(isLastExercise ? 'Завершить тренировку' : 'Следующее упражнение'),
+              child: Text(isLastExercise
+                  ? 'Завершить тренировку'
+                  : 'Следующее упражнение'),
             ),
           ),
         ],

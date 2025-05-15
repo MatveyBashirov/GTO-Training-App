@@ -25,6 +25,7 @@ class MainDrawer extends StatelessWidget {
           ),
           Expanded(
               child: ListView.builder(
+            padding: EdgeInsets.zero,
             itemCount: drawerItems.length,
             itemBuilder: (context, index) {
               return Column(
@@ -34,7 +35,7 @@ class MainDrawer extends StatelessWidget {
                         style: theme.textTheme.titleMedium, drawerItems[index]),
                     onTap: () {
                       Navigator.pushNamed(
-                          context, drawerRoutes[index]); // Переход по маршруту
+                          context, drawerRoutes[index]);
                     },
                   ),
                   Divider()
