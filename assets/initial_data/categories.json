@@ -1,26 +1,38 @@
 [
     {
         "id": 1,
-        "name": "Пресс"
+        "name": "Пресс",
+        "image_url": "assets/img/abs.jpg"
+        
     },
     {
         "id": 2,
-        "name": "Руки"
+        "name": "Руки",
+        "image_url": "assets/img/arms.jpg"
     },
     {
         "id": 3,
-        "name": "Спина"
+        "name": "Спина",
+        "image_url": "assets/img/back.jpg"
     },
     {
         "id": 4,
-        "name": "Грудь"
+        "name": "Грудь",
+        "image_url": "assets/img/chest.jpg"
     },
     {
         "id": 5,
-        "name": "Ноги"
+        "name": "Ноги",
+        "image_url": "assets/img/legs.jpg"
     },
     {
         "id": 6,
-        "name": "Плечи"
+        "name": "Плечи",
+        "image_url": "assets/img/shoulders.jpg"
+    },
+    {
+        "id": 7,
+        "name": "Растяжка",
+        "image_url": "assets/img/legs.jpg"
     }
 ]

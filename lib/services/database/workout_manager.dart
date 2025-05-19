@@ -6,9 +6,10 @@ class WorkoutManager {
 
   WorkoutManager(this._db);
 
-  Future<int> createWorkout({required String title}) async {
+  Future<int> createWorkout(
+      {required String title, required int category}) async {
     final db = await _db.database;
-    return await db.insert('workouts', {'title': title});
+    return await db.insert('workouts', {'title': title, 'category': category});
   }
 
   Future<int> insertWorkoutExercise({
@@ -64,11 +65,27 @@ class WorkoutManager {
     return result.isNotEmpty ? result.first : null;
   }
 
-  Future<int> updateWorkout({required int id, required String title}) async {
+  Future<List<Map<String, dynamic>>> getWorkoutsByCategory(
+      int categoryId) async {
+    final db = await _db.database;
+    return await db.query(
+      'workouts',
+      where: 'category = ?',
+      whereArgs: [categoryId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    final db = await _db.database;
+    return await db.query('categories');
+  }
+
+  Future<int> updateWorkout(
+      {required int id, required String title, required int category}) async {
     final db = await _db.database;
     return await db.update(
       'workouts',
-      {'title': title},
+      {'title': title, 'category': category},
       where: 'id = ?',
       whereArgs: [id],
     );

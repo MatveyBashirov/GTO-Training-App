@@ -12,7 +12,6 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<AuthState>(
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
-        // Показываем загрузку пока проверяем состояние
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
@@ -20,12 +19,10 @@ class AuthWrapper extends StatelessWidget {
         final authState = snapshot.data;
         final session = authState?.session;
         
-        // Если пользователь авторизован - показываем главный экран
         if (session != null) {
           return const TrainingHomePage();
         }
         
-        // Если не авторизован - показываем экран входа
         return const LoginScreen();
       },
     );

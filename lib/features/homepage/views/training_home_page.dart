@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/features/drawer/drawer.dart';
 import 'package:trainings_app/features/homepage/widgets/training-card.dart';
+import 'package:trainings_app/features/my-trainings-page/views/category_workout_page.dart';
 import 'package:trainings_app/training_database.dart';
 
 class TrainingHomePage extends StatefulWidget {
@@ -29,14 +30,14 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   ];
 
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
-  Map<String, dynamic>? randomWorkout;
+  List<Map<String, dynamic>> categories = [];
   bool isLoading = false;
   int _totalPoints = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadRandomWorkout();
+    _loadCategories();
     _loadTotalPoints();
   }
 
@@ -54,21 +55,15 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
     });
   }
 
-  Future<void> _loadRandomWorkout() async {
+  Future<void> _loadCategories() async {
     setState(() => isLoading = true);
-    final workouts = await dbHelper.workoutManager.getAllWorkouts();
-    if (workouts.isNotEmpty) {
-      final randomIndex = Random().nextInt(workouts.length);
-      randomWorkout = workouts[randomIndex];
-    } else {
-      randomWorkout = null;
-    }
+    final db = await dbHelper.database;
+    categories = await db.query('categories');
     setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final theme = Theme.of(context);
     return Scaffold(
       drawerScrimColor: Colors.black45,
@@ -90,14 +85,16 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
           ),
         ),
         child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Center(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                   child: Text(
-                    'Попробуйте эту тренировку!',
+                    textAlign: TextAlign.center,
+                    'Выберите категорию тренировок',
                     style: theme.textTheme.headlineSmall?.copyWith(
                         color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.bold,
@@ -112,10 +109,9 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                   ),
                 ),
               ),
-              Container(
-                child: isLoading
+              isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : randomWorkout == null
+                    : categories.isEmpty
                         ? Center(
                             child: Text(
                               'Нет тренировок',
@@ -126,62 +122,57 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                             ),
                           )
                         : Padding(
-                            padding: const EdgeInsets.all(0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 16),
-                                AnimatedOpacity(
-                                  opacity: 1.0,
-                                  duration: const Duration(milliseconds: 600),
-                                  curve: Curves.easeOut,
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(),
-                                    child: TrainingCard(
-                                      title: randomWorkout!['title'],
-                                      workoutId: randomWorkout!['id'],
-                                      onDeleted: () async {
-                                        await dbHelper.workoutManager
-                                            .deleteWorkout(
-                                                randomWorkout!['id']);
-                                        await _loadRandomWorkout();
-                                      },
-                                    ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: categories.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final category = entry.value;
+                              return AnimatedOpacity(
+                                opacity: 1.0,
+                                duration: const Duration(milliseconds: 600),
+                                curve: Curves.easeOut,
+                                child: Card(
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                ),
-                                const SizedBox(height: 24),
-                                Center(
-                                  child: ElevatedButton.icon(
-                                    onPressed: _loadRandomWorkout,
-                                    icon: const Icon(Icons.refresh, size: 20),
-                                    label: const Text('Выбрать другую'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          theme.colorScheme.primary,
-                                      foregroundColor:
-                                          theme.colorScheme.onPrimary,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 32,
-                                        vertical: 12,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      elevation: 2,
-                                      textStyle:
-                                          theme.textTheme.labelLarge?.copyWith(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 4),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 36, vertical: 8),
+                                    title: Text(
+                                      category['name'] ?? 'Без названия',
+                                      style: theme.textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.w600,
+                                        color: theme.colorScheme.onSurface,
                                       ),
                                     ),
+                                    trailing: Icon(
+                                      Icons.arrow_forward_ios,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              CategoryWorkoutsPage(
+                                            categoryId: category['id'],
+                                            categoryName: category['name'],
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                              ],
-                            ),
+                              );
+                            }).toList(),
                           ),
-              ),
+                        ),
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 70, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                   child: Text(
                     textAlign: TextAlign.center,
                     'Тренеруйтесь\nи получайте баллы',
@@ -240,7 +231,8 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

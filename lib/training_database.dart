@@ -51,6 +51,7 @@ class ExerciseDatabase {
         image_url TEXT,
         category INTEGER,
         ccals FLOAT,
+        points FLOAT,
         FOREIGN KEY (category) REFERENCES categories (id) ON DELETE SET NULL
       )
     ''');
@@ -58,14 +59,16 @@ class ExerciseDatabase {
     await db.execute('''
       CREATE TABLE categories (
         id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        image_url TEXT NOT NULL
       )
     ''');
 
     await db.execute('''
       CREATE TABLE workouts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL
+        title TEXT NOT NULL,
+        category INTEGER NOT NULL
       )
     ''');
 
@@ -139,6 +142,7 @@ class ExerciseDatabase {
       categoryBatch.insert('categories', {
         'id': category['id'],
         'name': category['name'],
+        'image_url': category['image_url'],
       });
     }
     await categoryBatch.commit();
@@ -161,6 +165,7 @@ class ExerciseDatabase {
       workoutBatch.insert('workouts', {
         'id': workout['id'],
         'title': workout['title'],
+        'category': workout['category'],
       });
     }
     await workoutBatch.commit();

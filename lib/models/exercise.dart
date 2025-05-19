@@ -5,6 +5,7 @@ class Exercise {
   final String imageUrl;
   final int category;
   final double ccals;
+   final double points;
 
   Exercise({
     required this.id,
@@ -13,6 +14,7 @@ class Exercise {
     required this.imageUrl,
     required this.category,
     required this.ccals,
+    required this.points,
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
@@ -22,7 +24,8 @@ class Exercise {
       description: json['description'],
       imageUrl: json['image_url'],
       category: json['category'],
-      ccals: json['ccals']
+      ccals: json['ccals'],
+      points: json['points']
     );
   }
 
@@ -33,7 +36,8 @@ class Exercise {
       'description': description,
       'image_url': imageUrl,
       'category': category,
-      'ccals': ccals
+      'ccals': ccals,
+      'points': points
     };
   }
 }

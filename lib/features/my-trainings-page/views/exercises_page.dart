@@ -20,15 +20,29 @@ class _ExercisesPageState extends State<ExercisesPage>
   List<Exercise> allExercises = [];
   List<Exercise> selectedExercises = [];
   Map<int, int> exerciseReps = {};
+  List<Map<String, dynamic>> categories = [];
+  int? selectedCategoryId;
   bool isLoading = false;
   late final GifController _controller;
 
   @override
   void initState() {
     _loadExercises();
+    _loadCategories();
     _controller = GifController(vsync: this);
     _controller.value = 0;
     super.initState();
+  }
+
+  Future<void> _loadCategories() async {
+    setState(() => isLoading = true);
+    try {
+      categories = await dbHelper.workoutManager.getCategories();
+    } catch (e) {
+      print('Error loading categories: $e');
+      categories = [];
+    }
+    setState(() => isLoading = false);
   }
 
   Future<void> _loadExercises() async {
@@ -38,11 +52,12 @@ class _ExercisesPageState extends State<ExercisesPage>
 
       // Если это редактирование существующей тренировки
       if (widget.workoutId != null) {
-        final workout = await dbHelper.workoutManager.getWorkout(widget.workoutId!);
+        final workout =
+            await dbHelper.workoutManager.getWorkout(widget.workoutId!);
         _titleController.text = workout!['title'];
 
-        final workoutExercises =
-            await dbHelper.workoutManager.getWorkoutExercises(widget.workoutId!);
+        final workoutExercises = await dbHelper.workoutManager
+            .getWorkoutExercises(widget.workoutId!);
 
         for (final we in workoutExercises) {
           final exercise = Exercise(
@@ -52,6 +67,7 @@ class _ExercisesPageState extends State<ExercisesPage>
             imageUrl: we['image_url'] as String,
             category: we['category'] as int,
             ccals: we['ccals'] as double,
+            points: we['points'] as double,
           );
           selectedExercises.add(exercise);
           exerciseReps[exercise.id] = we['reps'];
@@ -79,7 +95,7 @@ class _ExercisesPageState extends State<ExercisesPage>
 
   void _updateReps(int exerciseId, int reps) {
     setState(() {
-      exerciseReps[exerciseId] = reps;
+      exerciseReps[exerciseId] = reps.clamp(1, 100);
     });
   }
 
@@ -91,11 +107,19 @@ class _ExercisesPageState extends State<ExercisesPage>
       );
       return;
     }
+    if (selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Выберите категорию тренировки')),
+      );
+      return;
+    }
 
     try {
       if (widget.workoutId == null) {
-        final workoutId =
-            await dbHelper.workoutManager.createWorkout(title: _titleController.text);
+        final workoutId = await dbHelper.workoutManager.createWorkout(
+          title: _titleController.text,
+          category: selectedCategoryId!,
+        );
 
         for (int i = 0; i < selectedExercises.length; i++) {
           final exercise = selectedExercises[i];
@@ -110,12 +134,11 @@ class _ExercisesPageState extends State<ExercisesPage>
         await dbHelper.workoutManager.updateWorkout(
           id: widget.workoutId!,
           title: _titleController.text,
+          category: selectedCategoryId!,
         );
 
-        // Удаляем все упражнения тренировки
         await dbHelper.workoutManager.deleteWorkoutExercises(widget.workoutId!);
 
-        // Добавляем новые упражнения
         for (int i = 0; i < selectedExercises.length; i++) {
           final exercise = selectedExercises[i];
           await dbHelper.workoutManager.insertWorkoutExercise(
@@ -148,43 +171,74 @@ class _ExercisesPageState extends State<ExercisesPage>
           ],
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                        labelText: 'Название тренировки',
-                        border: OutlineInputBorder()),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Введите название тренировки';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Выбранные упражнения: ',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(color: theme.primaryColor),
-                  ),
-                  _buildSelectedExercisesList(),
-                  const Divider(),
-                  Text(
-                    'Список всех упражнений: ',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(color: theme.primaryColor),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: _buildAllExercisesList(),
-                  ),
-                ],
-              )),
-        ));
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                          labelText: 'Название тренировки',
+                          border: OutlineInputBorder()),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Введите название тренировки';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<int>(
+                        value: selectedCategoryId,
+                        decoration: const InputDecoration(
+                          labelText: 'Категория тренировки',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: categories.map((category) {
+                          return DropdownMenuItem<int>(
+                            value: category['id'],
+                            child: Text(
+                              category['name'],
+                              style: TextStyle(
+                                color: Colors.black87
+                              ),
+                              ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCategoryId = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Выберите категорию';
+                          }
+                          return null;
+                        },
+                      ),
+                    const SizedBox(height: 26),
+                    Text(
+                      'Выбранные упражнения: ',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: theme.primaryColor),
+                    ),
+                    _buildSelectedExercisesList(),
+                    const Divider(),
+                    Text(
+                      'Список всех упражнений: ',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: theme.primaryColor),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _buildAllExercisesList(),
+                    ),
+                  ],
+                )),
+          ),
+        );
   }
 
   @override
@@ -222,10 +276,9 @@ class _ExercisesPageState extends State<ExercisesPage>
               padding: EdgeInsets.all(8),
               child: Row(
                 children: [
-                  // Изображение (первый кадр GIF)
                   Container(
-                    width: 60, // Фиксированная ширина
-                    height: 60, // Фиксированная высота
+                    width: 60,
+                    height: 60,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
@@ -237,7 +290,7 @@ class _ExercisesPageState extends State<ExercisesPage>
                       placeholder: (context) => Center(
                         child: Icon(Icons.fitness_center, size: 30),
                       ),
-                      fit: BoxFit.cover, // Заполнение контейнера
+                      fit: BoxFit.cover,
                     ),
                   ),
                   SizedBox(width: 12),
@@ -255,7 +308,6 @@ class _ExercisesPageState extends State<ExercisesPage>
                       ],
                     ),
                   ),
-                  // Кнопка "+" / галочка
                   IconButton(
                     icon: Icon(Icons.add, color: theme.colorScheme.primary),
                     onPressed: () => _addExercise(exercise),
@@ -277,44 +329,47 @@ class _ExercisesPageState extends State<ExercisesPage>
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: selectedExercises.length,
-      itemBuilder: (context, index) {
-        final exercise = selectedExercises[index];
-        return ListTile(
-          title: Text(exercise.name),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove),
-                onPressed: () {
-                  _updateReps(
-                    exercise.id,
-                    (exerciseReps[exercise.id] ?? 10) - 1,
-                  );
-                },
-              ),
-              Text('${exerciseReps[exercise.id] ?? 10}'),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  _updateReps(
-                    exercise.id,
-                    (exerciseReps[exercise.id] ?? 10) + 1,
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => _removeExercise(exercise),
-              ),
-            ],
-          ),
-        );
-      },
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: 250,
+      ),
+      child: ListView.builder(
+        itemCount: selectedExercises.length,
+        itemBuilder: (context, index) {
+          final exercise = selectedExercises[index];
+          return ListTile(
+            title: Text(exercise.name),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove),
+                  onPressed: () {
+                    _updateReps(
+                      exercise.id,
+                      (exerciseReps[exercise.id] ?? 10) - 1,
+                    );
+                  },
+                ),
+                Text('${exerciseReps[exercise.id] ?? 10}'),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    _updateReps(
+                      exercise.id,
+                      (exerciseReps[exercise.id] ?? 10) + 1,
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeExercise(exercise),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
