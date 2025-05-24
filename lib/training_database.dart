@@ -91,9 +91,20 @@ class ExerciseDatabase {
         workout_count INTEGER,
         calories_burned REAL,
         weight REAL,
-        points INTEGER DEFAULT 0
+        points FLOAT DEFAULT 0
     )
   ''');
+
+  //Таблица для отложенных операций (Офлайн режим)
+  await db.execute('''
+      CREATE TABLE pending_sync (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        operation TEXT NOT NULL,
+        table_name TEXT NOT NULL,
+        data TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    ''');
 
     await _insertInitialData(db);
   }
@@ -155,7 +166,8 @@ class ExerciseDatabase {
         'description': exercise['description'],
         'image_url': exercise['image_url'],
         'category': exercise['category'],
-        'ccals': exercise['ccals']
+        'ccals': exercise['ccals'],
+        'points': exercise['points']
       });
     }
     await exerciseBatch.commit();

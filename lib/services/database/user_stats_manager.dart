@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,22 +12,65 @@ class UserStatsManager {
   final AuthService _authService;
   final SupabaseClient _supabase;
 
-  UserStatsManager(this._db, this._authService, this._supabase);
+  UserStatsManager(this._db, this._authService, this._supabase){initStats();}
 
   Future<void> initStats() async {
-    final user = _authService.currentUser;
+    final user = _authService.getCachedSession();
     if (user != null) {
-      await _syncWithSupabase();
+      await _syncPendingOperations();
     }
-
-    // Подписываемся на изменения состояния аутентификации
-    _authService.authStateChanges.listen((authState) {
+    _authService.authStateChanges.listen((authState) async {
       if (authState.event == AuthChangeEvent.signedIn) {
-        _syncWithSupabase();
+        await _syncWithSupabase();
+        await _syncPendingOperations();
       } else if (authState.event == AuthChangeEvent.signedOut) {
-        _clearLocalStats();
+        await _clearLocalStats();
       }
     });
+
+    Connectivity().onConnectivityChanged.listen((result) async {
+      if (result != ConnectivityResult.none) {
+        await _syncPendingOperations();
+      }
+    });
+  }
+
+  Future<bool> _isOnline() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  Future<void> _syncPendingOperations() async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null || !await _isOnline()) return;
+
+    final db = await _db.database;
+    final pending = await db.query('pending_sync', where: 'table_name = ?', whereArgs: ['user_fitness_data']);
+    
+    final batch = db.batch();
+    for (var item in pending) {
+      final operation = item['operation'] as String;
+      final data = jsonDecode(item['data'] as String) as Map<String, dynamic>;
+      
+      try {
+        if (operation == 'insert') {
+          await _supabase.from('user_stats').upsert({
+            'user_id': userId,
+            'date': data['date'],
+            'workout_count': data['workout_count'],
+            'calories_burned': data['calories_burned'],
+            'weight': data['weight'],
+            'points': data['points'],
+          });
+        } else if (operation == 'delete') {
+          await _supabase.from('user_stats').delete().eq('user_id', userId).eq('date', data['date']);
+        }
+        batch.delete('pending_sync', where: 'id = ?', whereArgs: [item['id']]);
+      } catch (e) {
+        print('Error syncing operation ${item['id']}: $e');
+      }
+    }
+    await batch.commit();
   }
 
   Future<void> _syncWithSupabase() async {
@@ -68,17 +113,18 @@ class UserStatsManager {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    try {
-      await _supabase.from('user_stats').upsert({
-        'user_id': userId,
-        'date': stats.date.toIso8601String(),
-        'workout_count': stats.workoutCount,
-        'calories_burned': stats.caloriesBurned,
-        'weight': stats.weight,
-        'points': stats.points,
-      });
-    } catch (e) {
-      print('Error saving to Supabase: $e');
+    await db.insert(
+      'pending_sync',
+      {
+        'operation': 'insert',
+        'table_name': 'user_fitness_data',
+        'data': jsonEncode(stats.toMap()),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    if (await _isOnline()) {
+      await _syncPendingOperations();
     }
   }
 
@@ -97,35 +143,6 @@ class UserStatsManager {
       ],
     );
     stats = localResult.map((map) => UserStats.fromMap(map)).toList();
-
-    final connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult != ConnectivityResult.none) {
-      try {
-        final data = await _supabase
-            .from('user_stats')
-            .select()
-            .eq('user_id', userId)
-            .gte('date', start.toIso8601String().substring(0, 10))
-            .lte('date', end.toIso8601String().substring(0, 10));
-
-        final supabaseStats =
-            data.map((item) => UserStats.fromJson(item)).toList();
-
-        final batch = db.batch();
-        for (var stat in supabaseStats) {
-          batch.insert(
-            'user_fitness_data',
-            stat.toMap(),
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        }
-        await batch.commit();
-
-        stats = supabaseStats;
-      } catch (e) {
-        print('Error fetching from Supabase: $e');
-      }
-    }
 
     final filledStats = <UserStats>[];
     for (var day = start;
@@ -160,41 +177,12 @@ class UserStatsManager {
     return stat.workoutCount == 0;
   }
 
-  Future<void> awardPointsForWorkout() async {
-    final today = DateTime.now();
-    final yesterday = today.subtract(Duration(days: 1));
-
-    final todayStats = await getStats(today, today);
-    final yesterdayStats = await getStats(yesterday, yesterday);
-
-    final existingTodayStat =
-        todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
-    int currentPoints = existingTodayStat.points ?? 0;
-
-    currentPoints += 1;
-
-    if (yesterdayStats.isNotEmpty &&
-        (yesterdayStats.first.workoutCount ?? 0) > 0) {
-      currentPoints += 3;
-    }
-
-    final updatedStat = UserStats(
-      date: today,
-      workoutCount: (existingTodayStat.workoutCount ?? 0) + 1,
-      caloriesBurned: existingTodayStat.caloriesBurned,
-      weight: existingTodayStat.weight,
-      points: currentPoints,
-    );
-
-    await saveStats(updatedStat);
-  }
-
-  Future<int> getTotalPoints() async {
+  Future<double> getTotalPoints() async {
     final userId = _authService.currentUser?.id;
     if (userId == null) return 0;
 
     final stats = await getStats(DateTime(2000), DateTime.now());
-    int total = 0;
+    double total = 0;
     for (var stat in stats) {
       total += stat.points ?? 0;
     }

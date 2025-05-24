@@ -17,8 +17,8 @@ void main () async {
   await dotenv.load(fileName: ".env");
   
   await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!, // Получаем URL из .env
-    anonKey: dotenv.env['SUPABASE_KEY']!, // Получаем ключ из .env
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_KEY']!,
   );
 
   runApp(TrainingApp());

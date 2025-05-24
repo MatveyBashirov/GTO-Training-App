@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trainings_app/models/profile.dart';
 
@@ -9,6 +13,48 @@ class AuthService {
   User? get currentUser => supabase.auth.currentUser;
 
   Stream<AuthState> get authStateChanges => supabase.auth.onAuthStateChange;
+
+  Future<bool> get isOnline async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  Future<Session?> getCachedSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final sessionJson = prefs.getString('supabase_session');
+    if (sessionJson != null) {
+      try {
+        final sessionData = Map<String, dynamic>.from(jsonDecode(sessionJson));
+        return Session.fromJson(sessionData);
+      } catch (e) {
+        print('Ошибка при восстановлении сессии: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Future<void> saveSession(Session? session) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (session != null) {
+      await prefs.setString('supabase_session', jsonEncode(session.toJson()));
+    } else {
+      await prefs.remove('supabase_session');
+    }
+  }
+
+  Future<Session?> getCurrentSession() async {
+    if (await isOnline) {
+      try {
+        final session = supabase.auth.currentSession;
+        await saveSession(session);
+        return session;
+      } catch (e) {
+        print('Ошибка при получении сессии с сервера: $e');
+      }
+    }
+    return await getCachedSession();
+  }
 
   Future<void> signOut() async {
     await supabase.auth.signOut();

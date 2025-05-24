@@ -41,6 +41,7 @@ class WorkoutManager {
         e.image_url,
         e.category,
         e.ccals,
+        e.points,
         we.reps,
         we.order_index
       FROM workout_exercises we

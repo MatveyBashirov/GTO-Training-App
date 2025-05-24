@@ -50,7 +50,6 @@ class _ExercisesPageState extends State<ExercisesPage>
     try {
       allExercises = await dbHelper.exerciseManager.getExercises();
 
-      // Если это редактирование существующей тренировки
       if (widget.workoutId != null) {
         final workout =
             await dbHelper.workoutManager.getWorkout(widget.workoutId!);
@@ -162,13 +161,15 @@ class _ExercisesPageState extends State<ExercisesPage>
     final theme = Theme.of(context);
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Создать тренировку'),
+          title: Center(child: const Text('Создать тренировку')),
           actions: [
             IconButton(
               icon: const Icon(Icons.save),
               onPressed: _saveWorkout,
             )
           ],
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: Colors.white,
         ),
         body: Padding(
             padding: const EdgeInsets.all(16.0),

@@ -5,7 +5,7 @@ class Exercise {
   final String imageUrl;
   final int category;
   final double ccals;
-   final double points;
+  final double points;
 
   Exercise({
     required this.id,

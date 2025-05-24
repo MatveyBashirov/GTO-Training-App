@@ -53,6 +53,10 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
           : workouts.isEmpty
               ? Center(child: Text('Нет тренировок'))
               : ListView.builder(
+                padding: const EdgeInsets.only(
+                    top: 0,
+                    bottom: 80,
+                  ),
                   itemCount: workouts.length,
                   itemBuilder: (context, index) {
                     final workout = workouts[index];

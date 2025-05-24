@@ -3,7 +3,7 @@ class UserStats {
   final int? workoutCount;
   final double? caloriesBurned;
   final double? weight;
-  final int? points;
+  final double? points;
 
   UserStats({
     required this.date,
@@ -29,7 +29,7 @@ class UserStats {
       workoutCount: map['workout_count'],
       caloriesBurned: map['calories_burned']?.toDouble(),
       weight: map['weight']?.toDouble(),
-      points: map['points'],
+      points: map['points']?.toDouble(),
     );
   }
 
@@ -39,7 +39,7 @@ class UserStats {
       workoutCount: json['workout_count'],
       caloriesBurned: json['calories_burned']?.toDouble(),
       weight: json['weight']?.toDouble(),
-      points: json['points'],
+      points: json['points']?.toDouble(),
     );
   }
 }

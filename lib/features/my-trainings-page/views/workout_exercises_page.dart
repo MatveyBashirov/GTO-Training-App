@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/features/my-trainings-page/views/exercise_info.dart';
@@ -33,19 +34,32 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
   Future<void> _loadWorkoutData() async {
     setState(() => isLoading = true);
 
-    // Загружаем название тренировки
     final workout = await dbHelper.workoutManager.getWorkout(widget.workoutId);
     if (workout != null) {
       workoutTitle = workout['title'];
     }
 
-    // Загружаем упражнения для тренировки
     workoutExercises = await dbHelper.workoutManager.getWorkoutExercises(widget.workoutId);
 
     setState(() => isLoading = false);
   }
 
-  void _startWorkout() {
+  Future<bool> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  void _startWorkout() async {
+    bool isConnected = await _checkInternetConnection();
+    if (!isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Для прохождения тренировки необходимо подключение к интернету'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(

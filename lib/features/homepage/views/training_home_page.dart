@@ -32,7 +32,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
   List<Map<String, dynamic>> categories = [];
   bool isLoading = false;
-  int _totalPoints = 0;
+  double _totalPoints = 0;
 
   @override
   void initState() {

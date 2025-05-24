@@ -30,10 +30,13 @@ class TrainingScreenState extends State<TrainingScreen> {
   void _completeTraining() {
     final duration = DateTime.now().difference(_startTime!);
     double totalCalories = 0.0;
+    double points = 0.0;
     for (var exercise in widget.exercises) {
       final reps = exercise['reps'] as int;
       final caloriesPerRep = exercise['ccals'] as double;
+      final pointsPerRep = exercise['points'] as double;
       totalCalories += reps * caloriesPerRep;
+      points += reps*pointsPerRep;
     }
 
     Navigator.pushReplacement(
@@ -42,6 +45,7 @@ class TrainingScreenState extends State<TrainingScreen> {
         builder: (context) => CompletionScreen(
           caloriesBurned: totalCalories,
           duration: duration,
+          points: points,
         ),
       ),
     );

@@ -5,11 +5,13 @@ import 'package:trainings_app/training_database.dart';
 
 class CompletionScreen extends StatefulWidget{
 
+  final double points;
   final double caloriesBurned;
   final Duration duration;
   
   const CompletionScreen({
     super.key,
+    required this.points,
     required this.caloriesBurned,
     required this.duration
   });
@@ -31,27 +33,19 @@ class CompletionScreenState extends State<CompletionScreen> {
   }
 
   Future<void> _saveWorkoutData() async {
-    final today = DateTime.now();
-    final yesterday = today.subtract(Duration(days: 1));
+  final today = DateTime.now();
     
-    final todayStats = await _db.userStatsManager.getStats(today, today);
-  final yesterdayStats = await _db.userStatsManager.getStats(yesterday, yesterday);
+  final todayStats = await _db.userStatsManager.getStats(today, today);
 
   final existingTodayStat = todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
-  int currentPoints = existingTodayStat.points ?? 0;
-
-  currentPoints += 1;
-
-  final isFirstWorkout = await _db.userStatsManager.isFirstWorkoutToday();
-  if (isFirstWorkout && yesterdayStats.isNotEmpty && (yesterdayStats.first.workoutCount ?? 0) > 0) {
-    currentPoints += 3;
-  }
+  double currentPoints = existingTodayStat.points ?? 0;
+  currentPoints = currentPoints + widget.points;
 
   final newStat = UserStats(
     date: today,
     workoutCount: (existingTodayStat.workoutCount ?? 0) + 1,
     caloriesBurned: (existingTodayStat.caloriesBurned ?? 0) + widget.caloriesBurned,
-    weight: existingTodayStat.weight,
+    weight: existingTodayStat.weight ?? 0,
     points: currentPoints,
   );
 
@@ -88,7 +82,6 @@ class CompletionScreenState extends State<CompletionScreen> {
                 final todayStats = await _db.userStatsManager.getStats(today, today);
                 final existingStat = todayStats.isNotEmpty ? todayStats.first : UserStats(date: today);
 
-                // Обновляем статистику с новым весом
                 final newStat = UserStats(
                   date: today,
                   workoutCount: existingStat.workoutCount,
