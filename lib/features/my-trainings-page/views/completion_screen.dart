@@ -163,7 +163,6 @@ class CompletionScreenState extends State<CompletionScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Калории
                     Row(
                       children: [
                         Icon(Icons.local_fire_department, color: Theme.of(context).primaryColor , size: 24),
@@ -181,7 +180,6 @@ class CompletionScreenState extends State<CompletionScreen> {
                       ],
                     ),
                     const SizedBox(height: 15),
-                    // Время
                     Row(
                       children: [
                         Icon(Icons.timer, color: Theme.of(context).primaryColor, size: 24),
@@ -202,10 +200,13 @@ class CompletionScreenState extends State<CompletionScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Кнопка "На главную"
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/myworkouts',
+                    (route) => route.settings.name == '/myworkouts' || route.isFirst,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,

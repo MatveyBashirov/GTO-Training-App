@@ -43,7 +43,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
 
         final authState = snapshot.data;
-        final session = authState?.session;
+        final session = authState?.session ?? _initialSession;
         
         if (session != null) {
           return const TrainingHomePage();

@@ -150,7 +150,6 @@ class _WorkoutExercisesPageState extends State<WorkoutExercisesPage>
                       },
                     ),
                   ),
-                  // Кнопка "Начать тренировку" внизу экрана
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: ElevatedButton(

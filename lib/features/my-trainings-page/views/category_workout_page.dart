@@ -81,6 +81,7 @@ class _CategoryWorkoutsPageState extends State<CategoryWorkoutsPage> {
                         child: TrainingCard(
                           title: workout['title'],
                           workoutId: workout['id'],
+                          categoryId: workout['category'],
                           onDeleted: () async {
                             await dbHelper.workoutManager.deleteWorkout(workout['id']);
                             await _loadWorkouts();

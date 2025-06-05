@@ -65,6 +65,7 @@ class _SelectWorkoutScreenState extends State<SelectWorkoutScreen> {
                       child: TrainingCard(
                         title: workout['title'],
                         workoutId: workout['id'],
+                        categoryId: workout['category'],
                         onDeleted: () => setState(() {
                           workouts = workouts.where((w) => w['id'] != workout['id']).toList();
                         }),

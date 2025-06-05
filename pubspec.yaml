@@ -24,6 +24,7 @@ dependencies:
   intl: ^0.20.2
   connectivity_plus: ^6.1.4
   flutter_staggered_animations: ^1.1.1
+  url_launcher: ^6.3.1
 
   test: ^1.24.0
   sqflite_common_ffi: ^2.3.4

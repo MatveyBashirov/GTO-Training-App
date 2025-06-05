@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -18,7 +19,6 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   final List<String> drawerItems = [
     "Мои тренировки",
     "Статистика",
-    // "Нормативы ГТО",
     "Личный кабинет",
   ];
 
@@ -44,9 +44,25 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    precacheImage(const AssetImage('assets/img/drawer_img.jpg'), context);
+    _precacheImages();
     _loadTotalPoints();
   }
+
+  Future<void> _precacheImages() async {
+  try {
+    final manifestContent = await DefaultAssetBundle.of(context).loadString('AssetManifest.json');
+    final Map<String, dynamic> manifestMap = jsonDecode(manifestContent);
+
+    final imagePaths = manifestMap.keys
+        .where((String key) => key.startsWith('assets/img/'))
+        .toList();
+    for (final imagePath in imagePaths) {
+      await precacheImage(AssetImage(imagePath), context);
+    }
+  } catch (e) {
+    print('Ошибка при предзагрузке изображений: $e');
+  }
+}
 
   Future<void> _loadTotalPoints() async {
     final points = await dbHelper.userStatsManager.getTotalPoints();

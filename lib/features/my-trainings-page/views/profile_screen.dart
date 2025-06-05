@@ -1,7 +1,9 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:trainings_app/features/appbar/training-appbar.dart';
 import 'package:trainings_app/models/profile.dart';
 import 'package:trainings_app/services/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PersonalCabinetScreen extends StatefulWidget {
   const PersonalCabinetScreen({super.key});
@@ -29,14 +31,15 @@ class _PersonalCabinetScreenState extends State<PersonalCabinetScreen> {
       _isLoading = false;
     });
 
-    if (profile != null && (profile.firstName == null || profile.lastName == null)) {
+    if (profile != null &&
+        (profile.firstName == null || profile.lastName == null)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showProfileDialog(context);
       });
     }
   }
-  
-void _showProfileDialog(BuildContext context) {
+
+  void _showProfileDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -68,10 +71,12 @@ void _showProfileDialog(BuildContext context) {
                   return;
                 }
 
-                final success = await authService.updateUserProfile(firstName, lastName);
+                final success =
+                    await authService.updateUserProfile(firstName, lastName);
                 if (success) {
                   setState(() {
-                    _profile = Profile(firstName: firstName, lastName: lastName);
+                    _profile =
+                        Profile(firstName: firstName, lastName: lastName);
                   });
                   Navigator.of(context).pop();
                 } else {
@@ -139,7 +144,6 @@ void _showProfileDialog(BuildContext context) {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              // Имя
                               if (_profile?.firstName != null)
                                 Text(
                                   'Имя: ${_profile!.firstName}',
@@ -150,7 +154,6 @@ void _showProfileDialog(BuildContext context) {
                                   ),
                                 ),
                               const SizedBox(height: 8),
-                              // Фамилия
                               if (_profile?.lastName != null)
                                 Text(
                                   'Фамилия: ${_profile!.lastName}',
@@ -161,7 +164,6 @@ void _showProfileDialog(BuildContext context) {
                                   ),
                                 ),
                               const SizedBox(height: 8),
-                              // Email
                               Text(
                                 'Email: ${user.email}',
                                 style: TextStyle(
@@ -174,13 +176,113 @@ void _showProfileDialog(BuildContext context) {
                           ),
                         ),
                         const SizedBox(height: 30),
+                        Card(
+                          elevation: 2,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ExpansionTile(
+                            title: Text(
+                              'Система начисления баллов',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  'Баллы начисляются за выполнение упражнений и тренировок. '
+                                  'Каждое упражнение имеет определённое количество баллов, '
+                                  'которое зависит от сложности и затраченных калорий. ',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 2,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ExpansionTile(
+                            title: Text(
+                              'Сдача ГТО',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: RichText(
+                                    text: TextSpan(
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade800,
+                                        ),
+                                        children: [
+                                      TextSpan(
+                                          text:
+                                              'ГТО (Готов к труду и обороне) — это программа физической подготовки.'
+                                              'Данное приложение поможет вам развить ваши навыки '
+                                              'для успешной сдачи нормативов для получения '),
+                                      TextSpan(
+                                        text: 'налогового вычета',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () async {
+                                            const url = 'https://www.nalog.gov.ru/rn37/news/activities_fts/15941877/';
+                                              await launchUrl(Uri.parse(url));
+                                          },
+                                      ),
+                                      TextSpan(
+                                          text:
+                                              '! Подробную информацию Вы можете получить '),
+                                      TextSpan(
+                                        text: 'здесь',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () async {
+                                            const url = 'https://sh-morozovskaya-r24.gosweb.gosuslugi.ru/netcat_files/userfiles/proekt_novyh_normativov_GTO_2023.pdf';
+                                              await launchUrl(Uri.parse(url)); 
+                                          },
+                                      ),
+                                      TextSpan(text: '.'),
+                                    ])),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 30),
                         ElevatedButton(
                           onPressed: () async {
                             await authService.signOut();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: theme.colorScheme.primary,
-                            foregroundColor: Colors.white, 
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 40,
                               vertical: 16,

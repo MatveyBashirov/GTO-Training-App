@@ -8,11 +8,23 @@ class TrainingCard extends StatelessWidget {
     required this.title,
     required this.workoutId,
     required this.onDeleted,
+    required this.categoryId
   });
 
   final String title;
   final int workoutId;
+  final int categoryId;
   final VoidCallback  onDeleted;
+
+  Future<String?> _getCategoryImageUrl(int categoryId) async {
+    final db = ExerciseDatabase.instance;
+    final categories = await db.workoutManager.getCategories();
+    final category = categories.firstWhere(
+      (cat) => cat['id'] == categoryId,
+      orElse: () => {'image_url': 'assets/img/drawer_img.jpg'},
+    );
+    return category['image_url'] as String?;
+  }
 
   void _editWorkout(BuildContext context) {
     Navigator.of(context).push(
@@ -78,14 +90,33 @@ class TrainingCard extends StatelessWidget {
           child: Stack(
             alignment: AlignmentDirectional.center,
             children: [
-              Ink.image(
-                colorFilter: ColorFilter.mode(
-                  theme.colorScheme.primary.withOpacity(0.5),
-                  BlendMode.color,
-                ),
-                height: 180,
-                image: AssetImage('assets/img/drawer_img.jpg'),
-                fit: BoxFit.cover,
+              FutureBuilder<String?>(
+                future: _getCategoryImageUrl(categoryId),
+                builder: (context, snapshot){
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return Ink.image(
+                      colorFilter: ColorFilter.mode(
+                        theme.colorScheme.primary.withOpacity(0.5),
+                        BlendMode.color,
+                      ),
+                      height: 180,
+                      image: const AssetImage('assets/img/drawer_img.jpg'),
+                      fit: BoxFit.cover,
+                    );
+                  }
+                  return Ink.image(
+                    colorFilter: ColorFilter.mode(
+                      theme.colorScheme.primary.withOpacity(0.5),
+                      BlendMode.color,
+                    ),
+                    height: 180,
+                    image: AssetImage(snapshot.data!),
+                    fit: BoxFit.cover,
+                  );
+                },
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),

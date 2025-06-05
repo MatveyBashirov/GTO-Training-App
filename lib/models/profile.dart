@@ -10,4 +10,11 @@ class Profile {
       lastName: json['last_name'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'first_name': firstName,
+      'last_name': lastName,
+    };
+  }
 }

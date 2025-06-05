@@ -94,7 +94,7 @@ class _ExercisesPageState extends State<ExercisesPage>
 
   void _updateReps(int exerciseId, int reps) {
     setState(() {
-      exerciseReps[exerciseId] = reps.clamp(1, 100);
+      exerciseReps[exerciseId] = reps.clamp(1, 50);
     });
   }
 

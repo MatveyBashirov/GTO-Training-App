@@ -55,6 +55,14 @@ class _StatsScreenState extends State<StatsScreen> {
     }
   }
 
+  double _getMaxCalories() {
+    if (_stats.isEmpty) return 100.0;
+    final maxCalories = _stats
+        .map((stat) => stat.caloriesBurned ?? 0.0)
+        .reduce((a, b) => a > b ? a : b);
+    return maxCalories * 1.1;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -86,6 +94,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 height: 300,
                 child: BarChart(
                   BarChartData(
+                    maxY: _getMaxCalories(),
                     barGroups: _stats
                         .asMap()
                         .entries
@@ -94,7 +103,7 @@ class _StatsScreenState extends State<StatsScreen> {
                             x: e.key,
                             barRods: [
                               BarChartRodData(
-                                  toY: e.value.caloriesBurned ?? 0.0,
+                                  toY: double.parse((e.value.caloriesBurned ?? 0.0).toStringAsFixed(1)),
                                   color: Colors.blue,
                                   width: 10,
                                   borderRadius: BorderRadius.all(Radius.zero)),

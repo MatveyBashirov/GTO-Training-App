@@ -44,51 +44,96 @@ class AuthService {
   }
 
   Future<Session?> getCurrentSession() async {
+    final cachedSession = await getCachedSession();
+    if (!await isOnline) {
+      return cachedSession;
+    }
+
     if (await isOnline) {
       try {
         final session = supabase.auth.currentSession;
-        await saveSession(session);
-        return session;
+        if (session != null) {
+          await saveSession(session);
+        }
+        return session ?? cachedSession;
       } catch (e) {
         print('Ошибка при получении сессии с сервера: $e');
       }
     }
-    return await getCachedSession();
+    return cachedSession;
   }
 
   Future<void> signOut() async {
-    await supabase.auth.signOut();
+    if (await isOnline) {
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        print('Ошибка при выходе из аккаунта: $e');
+      }
+    }
+    await saveSession(null);
+    await _clearProfileCache();
+  }
+
+  Future<void> _clearProfileCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_profile');
+  }
+
+  Future<Profile?> getCachedProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final profileJson = prefs.getString('user_profile');
+    if (profileJson != null) {
+      try {
+        final profileData = Map<String, dynamic>.from(jsonDecode(profileJson));
+        return Profile.fromJson(profileData);
+      } catch (e) {
+        print('Ошибка при восстановлении профиля: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _saveProfileToCache(Profile profile) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_profile', jsonEncode(profile.toJson()));
   }
 
   Future<Profile?> getUserProfile() async {
     if (currentUser == null) return null;
 
-    try {
-      final response = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('user_id', currentUser!.id)
-          .single();
+    Profile? profile = await getCachedProfile();
 
-      return Profile.fromJson(response);
-    } catch (e) {
-      print('Ошибка загрузки профиля: $e');
-      return null;
+    if (!await isOnline) {
+      return profile;
     }
+
+    if (await isOnline) {
+      try {
+        final response = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', currentUser!.id)
+            .single();
+        profile = Profile.fromJson(response);
+        await _saveProfileToCache(profile);
+      } catch (e) {
+        print('Ошибка загрузки профиля с Supabase: $e');
+        return profile;
+      }
+    }
+    return profile;
   }
-  
+
   Future<bool> updateUserProfile(String firstName, String lastName) async {
     if (currentUser == null) return false;
-
     try {
-      await supabase
-          .from('profiles')
-          .update({
-            'first_name': firstName,
-            'last_name': lastName,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('user_id', currentUser!.id);
+      await supabase.from('profiles').update({
+        'first_name': firstName,
+        'last_name': lastName,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('user_id', currentUser!.id);
       return true;
     } catch (e) {
       print('Ошибка обновления профиля: $e');
