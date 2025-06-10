@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/homepage/views/login_screen.dart';
-import 'package:trainings_app/features/homepage/views/signup_screen.dart';
-import 'package:trainings_app/features/homepage/views/training_home_page.dart';
-import 'package:trainings_app/features/my-trainings-page/views/my_trainings_page.dart';
-import 'package:trainings_app/features/my-trainings-page/views/profile_screen.dart';
-import 'package:trainings_app/features/my-trainings-page/views/stats_screen.dart';
-import 'package:trainings_app/features/my-trainings-page/views/workout_exercises_page.dart';
-import 'package:trainings_app/services/auth_wrapper.dart';
-import 'package:trainings_app/theme/theme.dart';
+import 'package:FitnessPlus/features/homepage/views/login_screen.dart';
+import 'package:FitnessPlus/features/homepage/views/signup_screen.dart';
+import 'package:FitnessPlus/features/homepage/views/training_home_page.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/my_trainings_page.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/profile_screen.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/stats_screen.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/workout_exercises_page.dart';
+import 'package:FitnessPlus/services/auth_wrapper.dart';
+import 'package:FitnessPlus/theme/theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

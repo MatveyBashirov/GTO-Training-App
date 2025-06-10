@@ -1,9 +1,9 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
-import 'package:trainings_app/features/my-trainings-page/views/exercise_info.dart';
-import 'package:trainings_app/features/my-trainings-page/views/training_screen.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/exercise_info.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/training_screen.dart';
+import 'package:FitnessPlus/training_database.dart';
 import 'package:gif/gif.dart';
 
 class WorkoutExercisesPage extends StatefulWidget {

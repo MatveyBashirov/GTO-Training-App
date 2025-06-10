@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trainings_app/models/exercise.dart';
+import 'package:FitnessPlus/models/exercise.dart';
 
 class ExerciseService {
   final SupabaseClient _supabase = Supabase.instance.client;

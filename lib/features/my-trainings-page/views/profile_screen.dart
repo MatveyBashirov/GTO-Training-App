@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
-import 'package:trainings_app/models/profile.dart';
-import 'package:trainings_app/services/auth_service.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/models/profile.dart';
+import 'package:FitnessPlus/services/auth_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PersonalCabinetScreen extends StatefulWidget {
@@ -112,7 +112,7 @@ class _PersonalCabinetScreenState extends State<PersonalCabinetScreen> {
             ? const Text('Пожалуйста, войдите в аккаунт')
             : _isLoading
                 ? const CircularProgressIndicator()
-                : Padding(
+                : SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
-import 'package:trainings_app/models/user_data.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/models/user_data.dart';
+import 'package:FitnessPlus/training_database.dart';
 
 class CompletionScreen extends StatefulWidget{
 

@@ -9,11 +9,11 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
 import 'package:sqflite/sqflite.dart' as _i5;
 import 'package:supabase_flutter/supabase_flutter.dart' as _i6;
-import 'package:trainings_app/models/exercise.dart' as _i9;
-import 'package:trainings_app/services/database/exercise_manager.dart' as _i2;
-import 'package:trainings_app/services/database/user_stats_manager.dart' as _i4;
-import 'package:trainings_app/services/database/workout_manager.dart' as _i3;
-import 'package:trainings_app/training_database.dart' as _i7;
+import 'package:FitnessPlus/models/exercise.dart' as _i9;
+import 'package:FitnessPlus/services/database/exercise_manager.dart' as _i2;
+import 'package:FitnessPlus/services/database/user_stats_manager.dart' as _i4;
+import 'package:FitnessPlus/services/database/workout_manager.dart' as _i3;
+import 'package:FitnessPlus/training_database.dart' as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values

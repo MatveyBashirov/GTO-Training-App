@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/my-trainings-page/views/exercise_info.dart';
-import 'package:trainings_app/models/exercise.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/exercise_info.dart';
+import 'package:FitnessPlus/models/exercise.dart';
+import 'package:FitnessPlus/training_database.dart';
 import 'package:gif/gif.dart';
 
 class ExercisesPage extends StatefulWidget {

@@ -1,9 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
 import 'package:intl/intl.dart';
-import 'package:trainings_app/models/user_data.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/models/user_data.dart';
+import 'package:FitnessPlus/training_database.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -76,6 +76,7 @@ class _StatsScreenState extends State<StatsScreen> {
               Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
                   child: Text(
+                    textAlign: TextAlign.center,
                     'Прогресс сожженых ккал',
                     style: theme.textTheme.headlineSmall?.copyWith(
                         color: theme.colorScheme.onSurface,
@@ -148,6 +149,7 @@ class _StatsScreenState extends State<StatsScreen> {
               Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
                   child: Text(
+                    textAlign: TextAlign.center,
                     'Показатели веса',
                     style: theme.textTheme.headlineSmall?.copyWith(
                         color: theme.colorScheme.onSurface,

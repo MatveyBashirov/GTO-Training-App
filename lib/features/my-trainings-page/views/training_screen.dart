@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gif/gif.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
-import 'package:trainings_app/features/my-trainings-page/views/completion_screen.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/completion_screen.dart';
 
 class TrainingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> exercises;

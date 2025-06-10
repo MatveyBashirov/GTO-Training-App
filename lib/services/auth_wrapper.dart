@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trainings_app/features/homepage/views/login_screen.dart';
-import 'package:trainings_app/features/homepage/views/training_home_page.dart';
-import 'package:trainings_app/services/auth_service.dart';
+import 'package:FitnessPlus/features/homepage/views/login_screen.dart';
+import 'package:FitnessPlus/features/homepage/views/training_home_page.dart';
+import 'package:FitnessPlus/services/auth_service.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});

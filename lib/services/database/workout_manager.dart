@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/training_database.dart';
 
 class WorkoutManager {
   final ExerciseDatabase _db;

@@ -5,10 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trainings_app/services/auth_service.dart';
-import 'package:trainings_app/services/database/exercise_manager.dart';
-import 'package:trainings_app/services/database/user_stats_manager.dart';
-import 'package:trainings_app/services/database/workout_manager.dart';
+import 'package:FitnessPlus/services/auth_service.dart';
+import 'package:FitnessPlus/services/database/exercise_manager.dart';
+import 'package:FitnessPlus/services/database/user_stats_manager.dart';
+import 'package:FitnessPlus/services/database/workout_manager.dart';
 
 class ExerciseDatabase {
   static final ExerciseDatabase instance = ExerciseDatabase._init();

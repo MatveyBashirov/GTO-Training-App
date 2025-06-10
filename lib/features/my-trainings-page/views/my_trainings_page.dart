@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
-import 'package:trainings_app/features/homepage/widgets/training-card.dart';
-import 'package:trainings_app/features/my-trainings-page/views/exercises_page.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/features/homepage/widgets/training-card.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/exercises_page.dart';
+import 'package:FitnessPlus/training_database.dart';
 
 class SelectWorkoutScreen extends StatefulWidget {
   const SelectWorkoutScreen({super.key});

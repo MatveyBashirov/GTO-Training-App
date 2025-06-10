@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
-import 'package:trainings_app/features/homepage/services/snakbar_service.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/features/homepage/services/snakbar_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});

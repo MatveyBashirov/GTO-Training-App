@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gif/gif.dart';
-import 'package:trainings_app/features/appbar/training-appbar.dart';
+import 'package:FitnessPlus/features/appbar/training-appbar.dart';
 
 class ExerciseInfo extends StatefulWidget {
   final String exerciseName;

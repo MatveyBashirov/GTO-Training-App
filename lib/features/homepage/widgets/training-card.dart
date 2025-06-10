@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:trainings_app/features/my-trainings-page/views/exercises_page.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/exercises_page.dart';
+import 'package:FitnessPlus/training_database.dart';
 
 class TrainingCard extends StatelessWidget {
   const TrainingCard ({
@@ -108,6 +108,8 @@ class TrainingCard extends StatelessWidget {
                     );
                   }
                   return Ink.image(
+                    matchTextDirection: true,
+                    alignment: Alignment.center,
                     colorFilter: ColorFilter.mode(
                       theme.colorScheme.primary.withOpacity(0.5),
                       BlendMode.color,

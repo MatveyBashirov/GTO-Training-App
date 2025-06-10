@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trainings_app/features/my-trainings-page/views/exercises_page.dart';
-import 'package:trainings_app/models/exercise.dart';
-import 'package:trainings_app/services/database/exercise_manager.dart';
-import 'package:trainings_app/services/database/workout_manager.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/features/my-trainings-page/views/exercises_page.dart';
+import 'package:FitnessPlus/models/exercise.dart';
+import 'package:FitnessPlus/services/database/exercise_manager.dart';
+import 'package:FitnessPlus/services/database/workout_manager.dart';
+import 'package:FitnessPlus/training_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'exercise_page_test.mocks.dart';

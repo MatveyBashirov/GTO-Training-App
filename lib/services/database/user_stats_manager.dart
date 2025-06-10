@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:trainings_app/models/user_data.dart';
-import 'package:trainings_app/services/auth_service.dart';
-import 'package:trainings_app/training_database.dart';
+import 'package:FitnessPlus/models/user_data.dart';
+import 'package:FitnessPlus/services/auth_service.dart';
+import 'package:FitnessPlus/training_database.dart';
 
 class UserStatsManager {
   final ExerciseDatabase _db;
