@@ -1,3 +1,4 @@
+import 'package:FitnessPlus/features/homepage/services/points_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:FitnessPlus/features/homepage/views/login_screen.dart';
 import 'package:FitnessPlus/features/homepage/views/signup_screen.dart';
@@ -9,6 +10,7 @@ import 'package:FitnessPlus/features/my-trainings-page/views/workout_exercises_p
 import 'package:FitnessPlus/services/auth_wrapper.dart';
 import 'package:FitnessPlus/theme/theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main () async {
@@ -21,7 +23,12 @@ void main () async {
     anonKey: dotenv.env['SUPABASE_KEY']!,
   );
 
-  runApp(TrainingApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => PointsNotifier(),
+      child: TrainingApp(),
+    ),
+  );
 }
 
 class TrainingApp extends StatelessWidget {

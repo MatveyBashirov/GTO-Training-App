@@ -1,7 +1,9 @@
+import 'package:FitnessPlus/features/homepage/services/points_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:FitnessPlus/features/appbar/training-appbar.dart';
 import 'package:FitnessPlus/models/user_data.dart';
 import 'package:FitnessPlus/training_database.dart';
+import 'package:provider/provider.dart';
 
 class CompletionScreen extends StatefulWidget{
 
@@ -50,6 +52,9 @@ class CompletionScreenState extends State<CompletionScreen> {
   );
 
   await _db.userStatsManager.saveStats(newStat);
+
+  final updatedPoints = await _db.userStatsManager.getTotalPoints();
+  Provider.of<PointsNotifier>(context, listen: false).updatePoints(updatedPoints);
   }
 
   Future<void> _checkFirstWorkout() async {

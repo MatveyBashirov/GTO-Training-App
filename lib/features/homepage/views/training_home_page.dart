@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:FitnessPlus/features/homepage/services/points_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:FitnessPlus/features/appbar/training-appbar.dart';
 import 'package:FitnessPlus/features/drawer/drawer.dart';
 import 'package:FitnessPlus/features/homepage/widgets/training-card.dart';
 import 'package:FitnessPlus/features/my-trainings-page/views/category_workout_page.dart';
 import 'package:FitnessPlus/training_database.dart';
+import 'package:provider/provider.dart';
 
 class TrainingHomePage extends StatefulWidget {
   const TrainingHomePage({super.key});
@@ -32,7 +34,6 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   final ExerciseDatabase dbHelper = ExerciseDatabase.instance;
   List<Map<String, dynamic>> categories = [];
   bool isLoading = false;
-  double _totalPoints = 0;
 
   @override
   void initState() {
@@ -66,9 +67,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
 
   Future<void> _loadTotalPoints() async {
     final points = await dbHelper.userStatsManager.getTotalPoints();
-    setState(() {
-      _totalPoints = points;
-    });
+    Provider.of<PointsNotifier>(context, listen: false).updatePoints(points);
   }
 
   Future<void> _loadCategories() async {
@@ -81,6 +80,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final points = Provider.of<PointsNotifier>(context).points;
     return Scaffold(
       drawerScrimColor: Colors.black45,
       backgroundColor: theme.colorScheme.secondary,
@@ -231,7 +231,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
                   child: Text(
                     textAlign: TextAlign.center,
-                    '$_totalPoints',
+                    '${points.toStringAsFixed(1)}',
                     style: theme.textTheme.headlineSmall?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
